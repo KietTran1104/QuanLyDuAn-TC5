@@ -1,0 +1,3 @@
+Quản lý dự án + system design + technical lead => An
+Font end => Phong, Kiệt 
+Back end ( data base => Vương , business logic => Hiếu , API Gateway => Vương )
