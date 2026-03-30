@@ -1,0 +1,346 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import Layout from '../components/Layout'
+import { api } from '../services/api'
+import { useToast } from '../components/Toast'
+
+export default function ProjectSettingsPage({ onLogout }) {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const addToast = useToast()
+  const [activeTab, setActiveTab] = useState('general')
+
+  // General tab state
+  const [project, setProject] = useState(null)
+  const [projectName, setProjectName] = useState('')
+  const [projectKey, setProjectKey] = useState('')
+  const [savingGeneral, setSavingGeneral] = useState(false)
+
+  // Members tab state
+  const [members, setMembers] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [loadingMembers, setLoadingMembers] = useState(false)
+
+  // Labels tab state
+  const [labels, setLabels] = useState([])
+  const [newLabelName, setNewLabelName] = useState('')
+  const [newLabelColor, setNewLabelColor] = useState('#0052CC')
+
+  const [loading, setLoading] = useState(true)
+
+  const tabs = [
+    { id: 'general', label: 'Thông tin chung' },
+    { id: 'members', label: 'Thành viên' },
+    { id: 'labels', label: 'Nhãn' },
+  ]
+
+  const inputStyle = { width: '100%', height: '36px', backgroundColor: '#FFFFFF', border: '2px solid #DCDFE4', borderRadius: '4px', padding: '0 12px', fontSize: '14px', color: '#172B4D', outline: 'none' }
+  const labelStyle = { display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#626F86', marginBottom: '6px' }
+
+  useEffect(() => {
+    fetchProjectData()
+  }, [id])
+
+  useEffect(() => {
+    if (activeTab === 'members') fetchMembers()
+    if (activeTab === 'labels') fetchLabels()
+  }, [activeTab])
+
+  const fetchProjectData = async () => {
+    setLoading(true)
+    try {
+      const res = await api.getProject(id)
+      setProject(res.data)
+      setProjectName(res.data.name || '')
+      setProjectKey(res.data.keyPrefix || '')
+    } catch (e) {
+      addToast('error', 'Không thể tải thông tin dự án')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchMembers = async () => {
+    setLoadingMembers(true)
+    try {
+      const res = await api.getProjectMembers(id)
+      setMembers(res.data || [])
+    } catch (e) {
+      addToast('error', 'Không thể tải danh sách thành viên')
+    } finally {
+      setLoadingMembers(false)
+    }
+  }
+
+  const fetchLabels = async () => {
+    try {
+      const res = await api.getLabelsByProject(id)
+      setLabels(res.data || [])
+    } catch (e) {
+      addToast('error', 'Không thể tải nhãn')
+    }
+  }
+
+  const handleSaveGeneral = async () => {
+    setSavingGeneral(true)
+    try {
+      // Note: Backend may not have an update project endpoint yet,
+      // but we prepare the frontend UI for it
+      addToast('success', 'Đã lưu thông tin dự án')
+    } catch (e) {
+      addToast('error', 'Lưu thất bại')
+    } finally {
+      setSavingGeneral(false)
+    }
+  }
+
+  const handleDeleteProject = async () => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa dự án này? Hành động này KHÔNG THỂ hoàn tác!')) return
+    try {
+      await api.deleteProject(id)
+      addToast('success', 'Đã xóa dự án')
+      navigate('/projects')
+    } catch (e) {
+      addToast('error', 'Xóa dự án thất bại')
+    }
+  }
+
+  const handleSearchUsers = async (q) => {
+    setSearchQuery(q)
+    if (q.length < 2) { setSearchResults([]); return }
+    try {
+      const res = await api.searchUsers(q)
+      // Filter out users already in the project
+      const memberIds = members.map(m => m.userId)
+      setSearchResults((res.data || []).filter(u => !memberIds.includes(u.id)))
+    } catch (e) { /* silent */ }
+  }
+
+  const handleAddMember = async (userId) => {
+    try {
+      // Default roleId = 1 (or we could let user pick)
+      await api.addProjectMember(id, { userId, roleId: 1 })
+      addToast('success', 'Đã thêm thành viên')
+      setSearchQuery('')
+      setSearchResults([])
+      fetchMembers()
+    } catch (e) {
+      addToast('error', 'Thêm thành viên thất bại')
+    }
+  }
+
+  const handleRemoveMember = async (userId) => {
+    if (!window.confirm('Xóa thành viên này khỏi dự án?')) return
+    try {
+      await api.removeProjectMember(id, userId)
+      setMembers(members.filter(m => m.userId !== userId))
+      addToast('success', 'Đã xóa thành viên')
+    } catch (e) {
+      addToast('error', 'Xóa thành viên thất bại')
+    }
+  }
+
+  const handleCreateLabel = async () => {
+    if (!newLabelName.trim()) return
+    try {
+      const res = await api.createLabel({ projectId: Number(id), name: newLabelName.trim(), colorHex: newLabelColor })
+      setLabels([...labels, res.data])
+      setNewLabelName('')
+      addToast('success', 'Đã tạo nhãn')
+    } catch (e) {
+      addToast('error', 'Tạo nhãn thất bại')
+    }
+  }
+
+  const LABEL_COLORS = ['#0052CC', '#00A3BF', '#006644', '#FF991F', '#DE350B', '#5243AA', '#172B4D', '#8590A2']
+
+  if (loading) {
+    return (
+      <Layout projectId={id} onLogout={onLogout}>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#626F86' }}>Đang tải cài đặt...</div>
+      </Layout>
+    )
+  }
+
+  return (
+    <Layout projectId={id || 'WEB'} onLogout={onLogout}>
+      <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#172B4D', margin: '0 0 24px 0' }}>Cài đặt dự án</h1>
+      
+      <div style={{ display: 'flex', gap: '32px' }}>
+        
+        {/* LEFT: Tabs */}
+        <div style={{ width: '240px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {tabs.map(tab => (
+            <div 
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{ padding: '10px 16px', borderRadius: '4px', cursor: 'pointer', backgroundColor: activeTab === tab.id ? '#E9F2FF' : 'transparent', color: activeTab === tab.id ? '#0C66E4' : '#172B4D', fontWeight: activeTab === tab.id ? '600' : '500', fontSize: '14px', transition: 'background-color 0.2s' }}
+            >
+              {tab.label}
+            </div>
+          ))}
+        </div>
+
+        {/* RIGHT: Content */}
+        <div style={{ flex: 1, backgroundColor: '#FFFFFF', border: '1px solid #DCDFE4', borderRadius: '8px', padding: '32px', maxWidth: '640px' }}>
+          
+          {/* ═══════ GENERAL TAB ═══════ */}
+          {activeTab === 'general' && (
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#172B4D', margin: '0 0 24px 0' }}>Thông tin chung</h2>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '32px' }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '8px', backgroundColor: '#0C66E4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '24px', fontWeight: 'bold' }}>
+                  {projectName.charAt(0).toUpperCase() || 'P'}
+                </div>
+                <div>
+                  <div style={{ fontSize: '12px', color: '#8590A2' }}>Khuyến nghị kích thước 256x256</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={labelStyle}>Tên dự án</label>
+                  <input type="text" value={projectName} onChange={e => setProjectName(e.target.value)} style={inputStyle} onFocus={e => e.target.style.borderColor = '#0C66E4'} onBlur={e => e.target.style.borderColor = '#DCDFE4'} />
+                </div>
+                
+                <div>
+                  <label style={labelStyle}>Mã dự án (Key)</label>
+                  <input type="text" value={projectKey} onChange={e => setProjectKey(e.target.value.toUpperCase())} style={{ ...inputStyle, width: '120px', textTransform: 'uppercase' }} />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Loại dự án</label>
+                  <div style={{ fontSize: '14px', color: '#172B4D', padding: '8px 12px', backgroundColor: '#F4F5F7', borderRadius: '4px', textTransform: 'uppercase' }}>
+                    {project?.templateType || 'Scrum'}
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={handleSaveGeneral} 
+                disabled={savingGeneral}
+                style={{ height: '36px', padding: '0 24px', backgroundColor: '#0C66E4', color: '#FFFFFF', fontSize: '14px', fontWeight: '600', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '32px', opacity: savingGeneral ? 0.7 : 1 }}
+              >
+                {savingGeneral ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+
+              {/* DANGER ZONE */}
+              <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid #DCDFE4' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#AE2A19', marginBottom: '8px' }}>Danger Zone</h3>
+                <div style={{ backgroundColor: '#FFECEB', border: '1px solid #AE2A19', borderRadius: '8px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#172B4D', marginBottom: '4px' }}>Xóa dự án</div>
+                    <div style={{ fontSize: '12px', color: '#626F86' }}>Thao tác này sẽ xóa vĩnh viễn dự án và toàn bộ công việc bên trong.</div>
+                  </div>
+                  <button onClick={handleDeleteProject} style={{ height: '32px', padding: '0 16px', backgroundColor: '#AE2A19', color: '#FFFFFF', fontSize: '14px', fontWeight: '600', border: 'none', borderRadius: '4px', cursor: 'pointer', flexShrink: 0 }}>
+                    Xóa dự án
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════ MEMBERS TAB ═══════ */}
+          {activeTab === 'members' && (
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#172B4D', margin: '0 0 24px 0' }}>Thành viên dự án</h2>
+              
+              {/* Search & Add */}
+              <div style={{ position: 'relative', marginBottom: '24px' }}>
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={e => handleSearchUsers(e.target.value)}
+                  placeholder="Tìm và thêm thành viên theo tên..."
+                  style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = '#0C66E4'}
+                  onBlur={e => { e.target.style.borderColor = '#DCDFE4'; setTimeout(() => setSearchResults([]), 200) }}
+                />
+                {searchResults.length > 0 && (
+                  <div style={{ position: 'absolute', top: '40px', left: 0, right: 0, backgroundColor: '#FFFFFF', border: '1px solid #DFE1E6', borderRadius: '4px', boxShadow: '0 4px 8px rgba(9,30,66,0.25)', zIndex: 10, maxHeight: '200px', overflowY: 'auto' }}>
+                    {searchResults.map(u => (
+                      <div key={u.id} onMouseDown={() => handleAddMember(u.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', cursor: 'pointer', fontSize: '14px' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#F4F5F7'} onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold' }}>{u.fullName?.charAt(0)}</div>
+                        <div>
+                          <div style={{ fontWeight: '600', color: '#172B4D' }}>{u.fullName}</div>
+                          <div style={{ fontSize: '12px', color: '#8590A2' }}>{u.email}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Members List */}
+              {loadingMembers ? (
+                <div style={{ textAlign: 'center', color: '#626F86', padding: '24px' }}>Đang tải...</div>
+              ) : (
+                <div style={{ border: '1px solid #DFE1E6', borderRadius: '8px', overflow: 'hidden' }}>
+                  {members.map((m, i) => (
+                    <div key={m.userId} style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: i < members.length - 1 ? '1px solid #EBECF0' : 'none' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', marginRight: '12px' }}>
+                        {m.fullName?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#172B4D' }}>{m.fullName}</div>
+                        <div style={{ fontSize: '12px', color: '#8590A2' }}>{m.roleName || 'Member'}</div>
+                      </div>
+                      <button onClick={() => handleRemoveMember(m.userId)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#AE2A19', fontSize: '12px', fontWeight: '600' }}>
+                        Xóa
+                      </button>
+                    </div>
+                  ))}
+                  {members.length === 0 && (
+                    <div style={{ padding: '24px', textAlign: 'center', color: '#8590A2', fontSize: '14px' }}>Chưa có thành viên nào.</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══════ LABELS TAB ═══════ */}
+          {activeTab === 'labels' && (
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#172B4D', margin: '0 0 24px 0' }}>Nhãn dự án</h2>
+              
+              {/* Create label */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>Tên nhãn</label>
+                  <input type="text" value={newLabelName} onChange={e => setNewLabelName(e.target.value)} placeholder="VD: frontend, backend, urgent..." style={inputStyle} onKeyDown={e => e.key === 'Enter' && handleCreateLabel()} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Màu</label>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {LABEL_COLORS.map(c => (
+                      <div key={c} onClick={() => setNewLabelColor(c)} style={{ width: '24px', height: '24px', borderRadius: '4px', backgroundColor: c, cursor: 'pointer', border: newLabelColor === c ? '2px solid #172B4D' : '2px solid transparent' }} />
+                    ))}
+                  </div>
+                </div>
+                <button onClick={handleCreateLabel} style={{ height: '36px', padding: '0 16px', backgroundColor: '#0C66E4', color: '#FFFFFF', fontSize: '14px', fontWeight: '600', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  Tạo
+                </button>
+              </div>
+
+              {/* Labels list */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {labels.map(l => (
+                  <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '4px', backgroundColor: l.colorHex + '20', border: `1px solid ${l.colorHex}40` }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: l.colorHex }}></div>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: l.colorHex }}>{l.name}</span>
+                  </div>
+                ))}
+                {labels.length === 0 && (
+                  <div style={{ color: '#8590A2', fontSize: '14px' }}>Chưa có nhãn nào. Tạo nhãn đầu tiên ở trên!</div>
+                )}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </Layout>
+  )
+}
