@@ -83,8 +83,12 @@ export default function KanbanIssue({ issue, onIssueClick }) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={getPriorityColor(issue.priority)} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="12 19 12 5 12 19"/><polyline points="5 12 12 5 19 12"/></svg>
           
           {issue.assigneeName ? (
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>
-              {issue.assigneeName.charAt(0).toUpperCase()}
+            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold', overflow: 'hidden' }}>
+              {issue.assigneeAvatarUrl ? (
+                <img src={issue.assigneeAvatarUrl} alt="assignee" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                issue.assigneeName.charAt(0).toUpperCase()
+              )}
             </div>
           ) : (
             <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1px dashed #626F86', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

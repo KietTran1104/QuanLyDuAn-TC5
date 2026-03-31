@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { ToastProvider } from './components/Toast'
+import { UserProvider, useUser } from './components/UserContext'
 import LoadingScreen from './components/LoadingScreen'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -16,6 +17,7 @@ import BoardPage from './pages/BoardPage'
 import BacklogPage from './pages/BacklogPage'
 import ProjectSettingsPage from './pages/ProjectSettingsPage'
 import ProjectReportsPage from './pages/ProjectReportsPage'
+import ProjectTimelinePage from './pages/ProjectTimelinePage'
 import NotFoundPage from './pages/NotFoundPage'
 import UnauthorizedPage from './pages/UnauthorizedPage'
 import ServerErrorPage from './pages/ServerErrorPage'
@@ -23,6 +25,7 @@ import ServerErrorPage from './pages/ServerErrorPage'
 function AppContent() {
   const [loading, setLoading] = useState(true)
   const [auth, setAuth] = useState(null)
+  const { updateUser } = useUser()
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -38,11 +41,13 @@ function AppContent() {
   const handleAuth = (data) => {
     localStorage.setItem('jira_auth', JSON.stringify(data))
     setAuth(data)
+    if (data && data.user) updateUser(data.user)
   }
 
   const handleLogout = () => {
     localStorage.removeItem('jira_auth')
     setAuth(null)
+    updateUser(null)
   }
 
   if (loading) return <LoadingScreen />
@@ -64,6 +69,7 @@ function AppContent() {
       <Route path="/projects/:id/backlog" element={auth ? <BacklogPage onLogout={handleLogout} /> : <Navigate to="/login" />} />
       <Route path="/projects/:id/settings" element={auth ? <ProjectSettingsPage onLogout={handleLogout} /> : <Navigate to="/login" />} />
       <Route path="/projects/:id/reports" element={auth ? <ProjectReportsPage onLogout={handleLogout} /> : <Navigate to="/login" />} />
+      <Route path="/projects/:id/timeline" element={auth ? <ProjectTimelinePage onLogout={handleLogout} /> : <Navigate to="/login" />} />
       
       <Route path="/403" element={<UnauthorizedPage />} />
       <Route path="/500" element={<ServerErrorPage />} />
@@ -75,7 +81,9 @@ function AppContent() {
 function App() {
   return (
     <ToastProvider>
-      <AppContent />
+      <UserProvider>
+        <AppContent />
+      </UserProvider>
     </ToastProvider>
   )
 }

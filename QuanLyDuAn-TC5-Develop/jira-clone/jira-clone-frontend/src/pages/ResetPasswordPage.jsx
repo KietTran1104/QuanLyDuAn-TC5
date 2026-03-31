@@ -15,15 +15,15 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   
   const inputRefs = useRef([])
-  const toast = useToast()
+  const { addToast } = useToast()
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!email) {
-      toast('Vui lòng gửi OTP trước', 'info')
+      addToast('Vui lòng gửi OTP trước', 'info')
       navigate('/forgot-password')
     }
-  }, [email, navigate, toast])
+  }, [email, navigate, addToast])
 
   const handleOtpChange = (index, value) => {
     if (value.length > 1) value = value.slice(0, 1)
@@ -48,19 +48,19 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const otpValue = otp.join('')
-    if (otpValue.length < 6) { toast('Vui lòng nhập đủ 6 số OTP', 'error'); return }
-    if (password !== confirmPassword) { toast('Mật khẩu không khớp!', 'error'); return }
+    if (otpValue.length < 6) { addToast('Vui lòng nhập đủ 6 số OTP', 'error'); return }
+    if (password !== confirmPassword) { addToast('Mật khẩu không khớp!', 'error'); return }
 
     setLoading(true)
     try {
       const { ok, data } = await api.resetPassword(email, otpValue, password)
       if (ok) {
-        toast('Đã đặt lại mật khẩu thành công! 🎉', 'success')
+        addToast('Đã đặt lại mật khẩu thành công! 🎉', 'success')
         setTimeout(() => navigate('/login'), 2000)
       } else {
-        toast(data.message || 'Lỗi khi đặt lại mật khẩu', 'error')
+        addToast(data.message || 'Lỗi khi đặt lại mật khẩu', 'error')
       }
-    } catch { toast('Lỗi kết nối server!', 'error') }
+    } catch { addToast('Lỗi kết nối server!', 'error') }
     setLoading(false)
   }
 

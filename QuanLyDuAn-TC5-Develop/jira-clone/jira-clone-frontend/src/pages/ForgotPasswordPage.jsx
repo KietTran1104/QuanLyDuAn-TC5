@@ -6,22 +6,22 @@ import { useToast } from '../components/Toast'
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const toast = useToast()
+  const { addToast } = useToast()
   const navigate = useNavigate()
 
   const handleSendOtp = async (e) => {
     e.preventDefault()
-    if (!email) { toast('Vui lòng nhập email!', 'error'); return }
+    if (!email) { addToast('Vui lòng nhập email!', 'error'); return }
     setLoading(true)
     try {
       const { ok, data } = await api.sendOtp(email, 'reset_password')
       if (ok) {
-        toast('OTP đã gửi! Kiểm tra email 📧', 'success')
+        addToast('OTP đã gửi! Kiểm tra email 📧', 'success')
         navigate(`/reset-password?email=${encodeURIComponent(email)}`)
       } else {
-        toast(data.message || JSON.stringify(data.errors || data), 'error')
+        addToast(data.message || JSON.stringify(data.errors || data), 'error')
       }
-    } catch { toast('Lỗi kết nối server!', 'error') }
+    } catch { addToast('Lỗi kết nối server!', 'error') }
     setLoading(false)
   }
 

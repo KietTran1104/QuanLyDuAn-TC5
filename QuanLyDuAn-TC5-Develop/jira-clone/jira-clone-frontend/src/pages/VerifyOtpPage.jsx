@@ -13,7 +13,7 @@ export default function VerifyOtpPage({ onAuth }) {
   const [countdown, setCountdown] = useState(30)
   
   const inputRefs = useRef([])
-  const toast = useToast()
+  const { addToast } = useToast()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -40,24 +40,24 @@ export default function VerifyOtpPage({ onAuth }) {
 
   const verifyOtpAction = async (otpCode) => {
     if (!email) {
-      toast('Không tìm thấy email cần xác thực!', 'error')
+      addToast('Không tìm thấy email cần xác thực!', 'error')
       return
     }
     setLoading(true)
     try {
       const { ok, data } = await api.verifyOtp(email, otpCode)
       if (ok) {
-        toast('Xác thực thành công! 🎉', 'success')
+        addToast('Xác thực thành công! 🎉', 'success')
         data._authMethod = 'Email + OTP (Verified)'
         onAuth(data) // Token sẽ được nạp và App.jsx tự động redirect sang HomePage
       } else {
-        toast(data.message || 'Xác thực thất bại', 'error')
+        addToast(data.message || 'Xác thực thất bại', 'error')
         // Xóa mã cũ để nhập lại
         setOtp(Array(6).fill(''))
         if (inputRefs.current[0]) inputRefs.current[0].focus()
       }
     } catch {
-      toast('Lỗi kết nối server!', 'error')
+      addToast('Lỗi kết nối server!', 'error')
     }
     setLoading(false)
   }
@@ -108,13 +108,13 @@ export default function VerifyOtpPage({ onAuth }) {
     try {
       const { ok, data } = await api.sendOtp(email, 'register')
       if (ok) {
-        toast('Đã gửi lại OTP! Kiểm tra email của bạn.', 'success')
+        addToast('Đã gửi lại OTP! Kiểm tra email của bạn.', 'success')
         setCountdown(30)
       } else {
-        toast(data.message || 'Gửi lại thất bại', 'error')
+        addToast(data.message || 'Gửi lại thất bại', 'error')
       }
     } catch {
-      toast('Lỗi kết nối server!', 'error')
+      addToast('Lỗi kết nối server!', 'error')
     }
     setResending(false)
   }

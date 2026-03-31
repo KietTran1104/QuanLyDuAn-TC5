@@ -26,7 +26,8 @@ public class User {
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
-    @Column(name = "avatar_url")
+    @Lob
+    @Column(name = "profile_avatar_url", columnDefinition = "LONGTEXT")
     private String avatarUrl;
 
     @Enumerated(EnumType.STRING)

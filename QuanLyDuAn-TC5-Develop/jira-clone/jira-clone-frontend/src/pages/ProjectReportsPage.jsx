@@ -6,7 +6,7 @@ import { useToast } from '../components/Toast'
 
 export default function ProjectReportsPage({ onLogout }) {
   const { id } = useParams()
-  const addToast = useToast()
+  const { addToast } = useToast()
 
   const [issues, setIssues] = useState([])
   const [statuses, setStatuses] = useState([])
@@ -26,7 +26,7 @@ export default function ProjectReportsPage({ onLogout }) {
       setIssues(issueRes.data || [])
       setStatuses(statusRes.data || [])
     } catch (e) {
-      addToast('error', 'Không thể tải dữ liệu báo cáo')
+      addToast('Không thể tải dữ liệu báo cáo', 'error')
     } finally {
       setLoading(false)
     }

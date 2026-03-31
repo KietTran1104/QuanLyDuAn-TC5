@@ -42,7 +42,7 @@ export default function BoardPage({ onLogout }) {
       setColumns(statusRes.data || [])
       setIssues(issueRes.data || [])
     } catch (e) {
-      addToast('error', 'Lỗi khi tải dữ liệu bảng')
+      addToast('Lỗi khi tải dữ liệu bảng', 'error')
     } finally {
       setLoading(false)
     }
@@ -101,7 +101,7 @@ export default function BoardPage({ onLogout }) {
           newStatusId: newStatusId,
         })
       } catch (e) {
-        addToast('error', 'Cập nhật trạng thái thất bại')
+        addToast('Cập nhật trạng thái thất bại', 'error')
         fetchBoardData()
       }
     }

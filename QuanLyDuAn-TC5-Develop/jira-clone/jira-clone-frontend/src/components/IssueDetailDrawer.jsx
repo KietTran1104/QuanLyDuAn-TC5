@@ -51,7 +51,7 @@ export default function IssueDetailDrawer({ issueId, onClose, onIssueUpdated, st
       setDescDraft(issueRes.data.description || '')
       setComments(commentsRes.data || [])
     } catch (e) {
-      addToast('error', 'Không thể tải chi tiết công việc')
+      addToast('Không thể tải chi tiết công việc', 'error')
     } finally {
       setLoading(false)
     }
@@ -63,7 +63,7 @@ export default function IssueDetailDrawer({ issueId, onClose, onIssueUpdated, st
       setIssue(res.data)
       if (onIssueUpdated) onIssueUpdated(res.data)
     } catch (e) {
-      addToast('error', 'Cập nhật thất bại')
+      addToast('Cập nhật thất bại', 'error')
     }
   }
 
@@ -89,7 +89,7 @@ export default function IssueDetailDrawer({ issueId, onClose, onIssueUpdated, st
       setComments([...comments, res.data])
       setNewComment('')
     } catch (e) {
-      addToast('error', 'Gửi bình luận thất bại')
+      addToast('Gửi bình luận thất bại', 'error')
     } finally {
       setSendingComment(false)
     }
@@ -270,8 +270,8 @@ export default function IssueDetailDrawer({ issueId, onClose, onIssueUpdated, st
                     {/* Comment list */}
                     {comments.map(c => (
                       <div key={c.id} style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#1F845A', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', flexShrink: 0 }}>
-                          {c.userFullName?.charAt(0).toUpperCase() || '?'}
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#1F845A', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', flexShrink: 0, overflow: 'hidden' }}>
+                          {c.userAvatarUrl ? <img src={c.userAvatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : c.userFullName?.charAt(0).toUpperCase()}
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '4px' }}>
@@ -347,8 +347,8 @@ export default function IssueDetailDrawer({ issueId, onClose, onIssueUpdated, st
                 {/* Người giao */}
                 <DetailField label="Người báo cáo">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#626F86', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>
-                      {issue.reporterName?.charAt(0).toUpperCase() || '?'}
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#626F86', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold', overflow: 'hidden' }}>
+                      {issue.reporterAvatarUrl ? <img src={issue.reporterAvatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (issue.reporterName?.charAt(0).toUpperCase() || '?')}
                     </div>
                     <span style={{ fontSize: '14px', color: '#172B4D' }}>{issue.reporterName || 'Không rõ'}</span>
                   </div>
@@ -359,8 +359,8 @@ export default function IssueDetailDrawer({ issueId, onClose, onIssueUpdated, st
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {issue.assigneeName ? (
                       <>
-                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>
-                          {issue.assigneeName.charAt(0).toUpperCase()}
+                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold', overflow: 'hidden' }}>
+                          {issue.assigneeAvatarUrl ? <img src={issue.assigneeAvatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : issue.assigneeName.charAt(0).toUpperCase()}
                         </div>
                         <span style={{ fontSize: '14px', color: '#172B4D' }}>{issue.assigneeName}</span>
                       </>

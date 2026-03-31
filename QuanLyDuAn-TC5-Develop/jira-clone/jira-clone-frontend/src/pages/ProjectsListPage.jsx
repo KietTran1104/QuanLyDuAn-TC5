@@ -24,7 +24,7 @@ export default function ProjectsListPage({ onLogout }) {
       const res = await api.getMyProjects()
       setProjects(res.data)
     } catch (e) {
-      addToast('error', 'Không thể tải danh sách dự án. Vui lòng tải lại trang.')
+      addToast('Không thể tải danh sách dự án. Vui lòng tải lại trang.', 'error')
     } finally {
       setLoading(false)
     }

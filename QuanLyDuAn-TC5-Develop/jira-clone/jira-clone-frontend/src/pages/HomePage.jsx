@@ -1,7 +1,9 @@
 import Layout from '../components/Layout'
+import { useUser } from '../components/UserContext'
 
 export default function HomePage({ auth, onLogout }) {
-  const userName = auth?.name || 'Kiet'
+  const { user } = useUser() || {}
+  const userName = user?.fullName || auth?.name || 'User'
 
   return (
     <Layout onLogout={onLogout}>

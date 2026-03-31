@@ -2,23 +2,69 @@ import { useState, useEffect, useRef } from 'react'
 import Layout from '../components/Layout'
 import { api } from '../services/api'
 import { useToast } from '../components/Toast'
+import { useUser } from '../components/UserContext'
 
 export default function ProfilePage({ auth, onLogout }) {
   const [activeTab, setActiveTab] = useState('basic')
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const { addToast } = useToast()
+  const { user, updateUser } = useUser() || {}
   
   const fileInputRef = useRef(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0]
-    if (file) {
-      const previewUrl = URL.createObjectURL(file)
-      setAvatarPreview(previewUrl)
-      // Call API upload avatar here if available
+    if (!file) return
+    
+    // Validate size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      addToast('Ảnh không được vượt quá 2MB', 'warning')
+      return
     }
+
+    const previewUrl = URL.createObjectURL(file)
+    setAvatarPreview(previewUrl)
+    setAvatarFile(file)
+  }
+
+  const uploadAvatar = async () => {
+    if (!avatarFile) return
+    
+    setUploadingAvatar(true)
+    try {
+      // Convert to base64 data URL to store as avatarUrl
+      const base64 = await fileToBase64(avatarFile)
+      
+      const res = await api.updateProfile({ 
+        fullName: profile?.fullName || user?.fullName || '', 
+        avatarUrl: base64 
+      })
+      if (res.ok) {
+        addToast('Đã cập nhật ảnh đại diện', 'success')
+        // Sync to UserContext so header updates immediately
+        if (updateUser) updateUser({ avatarUrl: base64 })
+        setAvatarFile(null)
+      } else {
+        addToast('Cập nhật ảnh thất bại', 'error')
+      }
+    } catch (err) {
+      addToast('Lỗi khi tải ảnh lên', 'error')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
   }
 
   // State for security tab
@@ -29,31 +75,42 @@ export default function ProfilePage({ auth, onLogout }) {
     api.getMe()
       .then(res => {
         setProfile(res.data)
+        // If user has an existing avatar, show it
+        if (res.data?.avatarUrl) {
+          setAvatarPreview(res.data.avatarUrl)
+        }
       })
       .catch(err => {
-        addToast('error', 'Không thể tải thông tin cá nhân')
+        addToast('Không thể tải thông tin cá nhân', 'error')
       })
       .finally(() => setLoading(false))
   }, [addToast])
 
   const handleUpdateProfile = async () => {
     try {
-      await api.updateProfile({ fullName: profile.fullName })
-      addToast('success', 'Đã lưu thay đổi hồ sơ')
+      const updateData = { fullName: profile.fullName }
+      const res = await api.updateProfile(updateData)
+      if (res.ok) {
+        addToast('Đã lưu thay đổi hồ sơ', 'success')
+        // Update UserContext so header shows new name
+        if (updateUser) updateUser({ fullName: profile.fullName })
+      } else {
+        addToast('Cập nhật thất bại', 'error')
+      }
     } catch (e) {
-      addToast('error', 'Cập nhật thất bại')
+      addToast('Cập nhật thất bại', 'error')
     }
   }
 
   const handleChangePassword = async () => {
-    if (!oldPassword || !newPassword) return addToast('warning', 'Vui lòng nhập đầy đủ thông tin')
+    if (!oldPassword || !newPassword) return addToast('Vui lòng nhập đầy đủ thông tin', 'warning')
     try {
       await api.changePassword({ oldPassword, newPassword })
-      addToast('success', 'Đã đổi mật khẩu thành công')
+      addToast('Đã đổi mật khẩu thành công', 'success')
       setOldPassword('')
       setNewPassword('')
     } catch (e) {
-      addToast('error', e.response?.data?.message || 'Không thể đổi mật khẩu. Hãy kiểm tra lại mật khẩu cũ.')
+      addToast(e.response?.data?.message || 'Không thể đổi mật khẩu. Hãy kiểm tra lại mật khẩu cũ.', 'error')
     }
   }
 
@@ -113,9 +170,17 @@ export default function ProfilePage({ auth, onLogout }) {
                   />
                   <button 
                     onClick={() => fileInputRef.current.click()}
-                    style={{ height: '32px', padding: '0 12px', backgroundColor: '#F1F2F4', color: '#172B4D', fontSize: '14px', fontWeight: '600', border: 'none', borderRadius: '4px', cursor: 'pointer', marginBottom: '8px' }}>
+                    style={{ height: '32px', padding: '0 12px', backgroundColor: '#F1F2F4', color: '#172B4D', fontSize: '14px', fontWeight: '600', border: 'none', borderRadius: '4px', cursor: 'pointer', marginBottom: '8px', marginRight: '8px' }}>
                     Thay đổi ảnh
                   </button>
+                  {avatarFile && (
+                    <button 
+                      onClick={uploadAvatar}
+                      disabled={uploadingAvatar}
+                      style={{ height: '32px', padding: '0 12px', backgroundColor: '#1F845A', color: 'white', fontSize: '14px', fontWeight: '600', border: 'none', borderRadius: '4px', cursor: 'pointer', marginBottom: '8px', opacity: uploadingAvatar ? 0.7 : 1 }}>
+                      {uploadingAvatar ? 'Đang lưu...' : 'Lưu ảnh mới'}
+                    </button>
+                  )}
                   <div style={{ fontSize: '12px', color: '#8590A2' }}>JPG, GIF or PNG. Max size 2MB.</div>
                 </div>
               </div>

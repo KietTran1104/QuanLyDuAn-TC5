@@ -7,7 +7,7 @@ import { useToast } from '../components/Toast'
 export default function ProjectSettingsPage({ onLogout }) {
   const { id } = useParams()
   const navigate = useNavigate()
-  const addToast = useToast()
+  const { addToast } = useToast()
   const [activeTab, setActiveTab] = useState('general')
 
   // General tab state
@@ -55,7 +55,7 @@ export default function ProjectSettingsPage({ onLogout }) {
       setProjectName(res.data.name || '')
       setProjectKey(res.data.keyPrefix || '')
     } catch (e) {
-      addToast('error', 'Không thể tải thông tin dự án')
+      addToast('Không thể tải thông tin dự án', 'error')
     } finally {
       setLoading(false)
     }
@@ -67,7 +67,7 @@ export default function ProjectSettingsPage({ onLogout }) {
       const res = await api.getProjectMembers(id)
       setMembers(res.data || [])
     } catch (e) {
-      addToast('error', 'Không thể tải danh sách thành viên')
+      addToast('Không thể tải danh sách thành viên', 'error')
     } finally {
       setLoadingMembers(false)
     }
@@ -78,7 +78,7 @@ export default function ProjectSettingsPage({ onLogout }) {
       const res = await api.getLabelsByProject(id)
       setLabels(res.data || [])
     } catch (e) {
-      addToast('error', 'Không thể tải nhãn')
+      addToast('Không thể tải nhãn', 'error')
     }
   }
 
@@ -87,9 +87,9 @@ export default function ProjectSettingsPage({ onLogout }) {
     try {
       // Note: Backend may not have an update project endpoint yet,
       // but we prepare the frontend UI for it
-      addToast('success', 'Đã lưu thông tin dự án')
+      addToast('Đã lưu thông tin dự án', 'success')
     } catch (e) {
-      addToast('error', 'Lưu thất bại')
+      addToast('Lưu thất bại', 'error')
     } finally {
       setSavingGeneral(false)
     }
@@ -99,10 +99,10 @@ export default function ProjectSettingsPage({ onLogout }) {
     if (!window.confirm('Bạn có chắc chắn muốn xóa dự án này? Hành động này KHÔNG THỂ hoàn tác!')) return
     try {
       await api.deleteProject(id)
-      addToast('success', 'Đã xóa dự án')
+      addToast('Đã xóa dự án', 'success')
       navigate('/projects')
     } catch (e) {
-      addToast('error', 'Xóa dự án thất bại')
+      addToast('Xóa dự án thất bại', 'error')
     }
   }
 
@@ -121,12 +121,12 @@ export default function ProjectSettingsPage({ onLogout }) {
     try {
       // Default roleId = 1 (or we could let user pick)
       await api.addProjectMember(id, { userId, roleId: 1 })
-      addToast('success', 'Đã thêm thành viên')
+      addToast('Đã thêm thành viên', 'success')
       setSearchQuery('')
       setSearchResults([])
       fetchMembers()
     } catch (e) {
-      addToast('error', 'Thêm thành viên thất bại')
+      addToast('Thêm thành viên thất bại', 'error')
     }
   }
 
@@ -135,9 +135,9 @@ export default function ProjectSettingsPage({ onLogout }) {
     try {
       await api.removeProjectMember(id, userId)
       setMembers(members.filter(m => m.userId !== userId))
-      addToast('success', 'Đã xóa thành viên')
+      addToast('Đã xóa thành viên', 'success')
     } catch (e) {
-      addToast('error', 'Xóa thành viên thất bại')
+      addToast('Xóa thành viên thất bại', 'error')
     }
   }
 
@@ -147,9 +147,9 @@ export default function ProjectSettingsPage({ onLogout }) {
       const res = await api.createLabel({ projectId: Number(id), name: newLabelName.trim(), colorHex: newLabelColor })
       setLabels([...labels, res.data])
       setNewLabelName('')
-      addToast('success', 'Đã tạo nhãn')
+      addToast('Đã tạo nhãn', 'success')
     } catch (e) {
-      addToast('error', 'Tạo nhãn thất bại')
+      addToast('Tạo nhãn thất bại', 'error')
     }
   }
 
@@ -262,7 +262,9 @@ export default function ProjectSettingsPage({ onLogout }) {
                   <div style={{ position: 'absolute', top: '40px', left: 0, right: 0, backgroundColor: '#FFFFFF', border: '1px solid #DFE1E6', borderRadius: '4px', boxShadow: '0 4px 8px rgba(9,30,66,0.25)', zIndex: 10, maxHeight: '200px', overflowY: 'auto' }}>
                     {searchResults.map(u => (
                       <div key={u.id} onMouseDown={() => handleAddMember(u.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', cursor: 'pointer', fontSize: '14px' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#F4F5F7'} onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold' }}>{u.fullName?.charAt(0)}</div>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', overflow: 'hidden' }}>
+                          {u.avatarUrl ? <img src={u.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.fullName?.charAt(0)}
+                        </div>
                         <div>
                           <div style={{ fontWeight: '600', color: '#172B4D' }}>{u.fullName}</div>
                           <div style={{ fontSize: '12px', color: '#8590A2' }}>{u.email}</div>
@@ -280,8 +282,8 @@ export default function ProjectSettingsPage({ onLogout }) {
                 <div style={{ border: '1px solid #DFE1E6', borderRadius: '8px', overflow: 'hidden' }}>
                   {members.map((m, i) => (
                     <div key={m.userId} style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: i < members.length - 1 ? '1px solid #EBECF0' : 'none' }}>
-                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', marginRight: '12px' }}>
-                        {m.fullName?.charAt(0).toUpperCase() || '?'}
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', marginRight: '12px', overflow: 'hidden' }}>
+                        {m.avatarUrl ? <img src={m.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (m.fullName?.charAt(0).toUpperCase() || '?')}
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: '14px', fontWeight: '600', color: '#172B4D' }}>{m.fullName}</div>

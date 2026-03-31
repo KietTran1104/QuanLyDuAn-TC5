@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api } from '../services/api'
+import { useUser } from './UserContext'
 import CreateSpaceModal from './CreateSpaceModal'
+import GlobalSearchDropdown from './GlobalSearchDropdown'
 
 export default function Layout({ children, onLogout, projectId }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const [isSidebarVisible, setIsSidebarVisible] = useState(true)
   const [spaces, setSpaces] = useState([])
   const [showCreateSpace, setShowCreateSpace] = useState(false)
+  const { user } = useUser() || {}
   
   const location = useLocation()
   const isActive = (path) => location.pathname === path
@@ -50,9 +54,18 @@ export default function Layout({ children, onLogout, projectId }) {
           </Link>
         </div>
 
-        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: '280px', height: '32px', backgroundColor: '#F1F2F4', borderRadius: '4px', display: 'flex', alignItems: 'center', padding: '0 8px' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8590A2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Tìm kiếm..." style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', color: '#172B4D', marginLeft: '8px', width: '100%' }} />
+        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: showSearchDropdown ? '640px' : '280px', transition: 'width 0.2s ease', zIndex: 110 }}>
+          <div style={{ position: 'relative', width: '100%', height: '32px', backgroundColor: showSearchDropdown ? '#FFFFFF' : '#F1F2F4', border: showSearchDropdown ? '2px solid #4C9AFF' : '2px solid transparent', borderRadius: '4px', display: 'flex', alignItems: 'center', padding: '0 8px', transition: 'all 0.2s ease' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8590A2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input 
+              type="text" 
+              placeholder="Tìm kiếm..." 
+              onFocus={() => setShowSearchDropdown(true)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', color: '#172B4D', marginLeft: '8px', width: '100%' }} />
+          </div>
+          {showSearchDropdown && (
+            <GlobalSearchDropdown onClose={() => setShowSearchDropdown(false)} />
+          )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -68,10 +81,14 @@ export default function Layout({ children, onLogout, projectId }) {
           <div style={{ position: 'relative' }}>
             <div 
                onClick={() => setShowProfileMenu(!showProfileMenu)}
-               style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}
-               title="Tài khoản"
+               style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', overflow: 'hidden' }}
+               title={user?.fullName || 'Tài khoản'}
             >
-              K
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                (user?.fullName || 'U').charAt(0).toUpperCase()
+              )}
             </div>
             {showProfileMenu && (
               <div style={{ position: 'absolute', top: '40px', right: '0', backgroundColor: '#FFFFFF', border: '1px solid #DCDFE4', borderRadius: '4px', boxShadow: '0 4px 12px rgba(9,30,66,0.15)', width: '200px', padding: '8px 0', zIndex: 101 }}>
@@ -139,6 +156,10 @@ export default function Layout({ children, onLogout, projectId }) {
               <Link to={`/projects/${projectId}/reports`} style={{ height: '36px', borderRadius: '4px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', backgroundColor: isActive(`/projects/${projectId}/reports`) ? '#E9F2FF' : 'transparent', color: isActive(`/projects/${projectId}/reports`) ? '#0C66E4' : '#172B4D', fontWeight: isActive(`/projects/${projectId}/reports`) ? '600' : '400' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 <span style={{ fontSize: '14px' }}>Báo cáo</span>
+              </Link>
+              <Link to={`/projects/${projectId}/timeline`} style={{ height: '36px', borderRadius: '4px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', backgroundColor: isActive(`/projects/${projectId}/timeline`) ? '#E9F2FF' : 'transparent', color: isActive(`/projects/${projectId}/timeline`) ? '#0C66E4' : '#172B4D', fontWeight: isActive(`/projects/${projectId}/timeline`) ? '600' : '400' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                <span style={{ fontSize: '14px' }}>Timeline (Gantt)</span>
               </Link>
               <Link to={`/projects/${projectId}/settings`} style={{ height: '36px', borderRadius: '4px', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', backgroundColor: isActive(`/projects/${projectId}/settings`) ? '#E9F2FF' : 'transparent', color: isActive(`/projects/${projectId}/settings`) ? '#0C66E4' : '#172B4D', fontWeight: isActive(`/projects/${projectId}/settings`) ? '600' : '400' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1 2-2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>

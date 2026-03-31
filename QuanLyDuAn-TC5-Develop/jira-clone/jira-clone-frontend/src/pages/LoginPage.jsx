@@ -9,7 +9,7 @@ export default function LoginPage({ onAuth }) {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const toast = useToast()
+  const { addToast } = useToast()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -17,30 +17,30 @@ export default function LoginPage({ onAuth }) {
     try {
       const { ok, data } = await api.login(email, password)
       if (ok) {
-        toast('Đăng nhập thành công! 🎉', 'success')
+        addToast('Đăng nhập thành công! 🎉', 'success')
         data._authMethod = 'Email + Password'
         onAuth(data)
       } else {
-        toast(data.message || JSON.stringify(data.errors || data), 'error')
+        addToast(data.message || JSON.stringify(data.errors || data), 'error')
       }
-    } catch { toast('Lỗi kết nối server!', 'error') }
+    } catch { addToast('Lỗi kết nối server!', 'error') }
     setLoading(false)
   }
 
   const handleGoogle = () => {
     triggerGoogleLogin(
       async (idToken) => {
-        toast('Đang xác thực với Google...', 'info')
+        addToast('Đang xác thực với Google...', 'info')
         const { ok, data } = await api.googleLogin(idToken)
         if (ok) {
-          toast('Đăng nhập Google thành công! 🎉', 'success')
+          addToast('Đăng nhập Google thành công! 🎉', 'success')
           data._authMethod = 'Google OAuth2'
           onAuth(data)
         } else {
-          toast(data.message || 'Google login thất bại', 'error')
+          addToast(data.message || 'Google login thất bại', 'error')
         }
       },
-      (msg) => toast(msg, 'info')
+      (msg) => addToast(msg, 'info')
     )
   }
 

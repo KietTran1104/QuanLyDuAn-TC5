@@ -4,7 +4,8 @@ import { api } from '../services/api'
 import { useToast } from '../components/Toast'
 
 export default function PeoplePage({ onLogout }) {
-  const addToast = useToast()
+  const { addToast } = useToast()
+
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -19,7 +20,7 @@ export default function PeoplePage({ onLogout }) {
       const res = await api.searchUsers(query || '')
       setUsers(res.data || [])
     } catch (e) {
-      addToast('error', 'Không thể tải danh sách nhân sự')
+      addToast('Không thể tải danh sách nhân sự', 'error')
     } finally {
       setLoading(false)
     }
@@ -69,8 +70,12 @@ export default function PeoplePage({ onLogout }) {
             <div key={u.id} style={{ display: 'flex', height: '56px', alignItems: 'center', padding: '0 16px', borderBottom: i === users.length - 1 ? 'none' : '1px solid #EBECF0' }}>
               
               <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: avatarColors[i % avatarColors.length], color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold' }}>
-                  {u.fullName?.charAt(0).toUpperCase() || '?'}
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: avatarColors[i % avatarColors.length], color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', overflow: 'hidden' }}>
+                  {u.avatarUrl ? (
+                    <img src={u.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    u.fullName?.charAt(0).toUpperCase() || '?'
+                  )}
                 </div>
                 <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#172B4D' }}>{u.fullName}</span>
               </div>

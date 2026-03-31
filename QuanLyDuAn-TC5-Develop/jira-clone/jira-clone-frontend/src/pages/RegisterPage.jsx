@@ -15,41 +15,41 @@ export default function RegisterPage({ onAuth }) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   
-  const toast = useToast()
+  const { addToast } = useToast()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (password !== confirmPassword) { toast('Mật khẩu không khớp!', 'error'); return }
+    if (password !== confirmPassword) { addToast('Mật khẩu không khớp!', 'error'); return }
 
     setLoading(true)
     try {
       const { ok, data } = await api.register(name, email, password)
       if (ok) {
-        toast('Đăng ký thành công! Vui lòng kiểm tra email.', 'success')
+        addToast('Đăng ký thành công! Vui lòng kiểm tra email.', 'success')
         // Chuyển hướng sang trang xác thực OTP thay vì log in luôn
         navigate(`/verify-otp?email=${encodeURIComponent(email)}`)
       } else {
-        toast(data.message || JSON.stringify(data.errors || data), 'error')
+        addToast(data.message || JSON.stringify(data.errors || data), 'error')
       }
-    } catch { toast('Lỗi kết nối server!', 'error') }
+    } catch { addToast('Lỗi kết nối server!', 'error') }
     setLoading(false)
   }
 
   const handleGoogle = () => {
     triggerGoogleLogin(
       async (idToken) => {
-        toast('Đang xác thực với Google...', 'info')
+        addToast('Đang xác thực với Google...', 'info')
         const { ok, data } = await api.googleLogin(idToken)
         if (ok) {
-          toast('Đăng ký Google thành công! 🎉', 'success')
+          addToast('Đăng ký Google thành công! 🎉', 'success')
           data._authMethod = 'Google OAuth2'
           onAuth(data)
         } else {
-          toast(data.message || 'Google login thất bại', 'error')
+          addToast(data.message || 'Google login thất bại', 'error')
         }
       },
-      (msg) => toast(msg, 'info')
+      (msg) => addToast(msg, 'info')
     )
   }
 

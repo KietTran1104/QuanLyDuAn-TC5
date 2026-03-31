@@ -11,7 +11,7 @@
 ```bash
 cd jira-clone-backend
 cp .env.example .env       # Copy và điền thông tin thật vào .env
-mvn clean spring-boot:run  # Chạy trên port 8080
+mvn spring-boot:run        # Chạy trên port 8080
 ```
 
 ### Frontend
