@@ -124,4 +124,23 @@ export const api = {
   // --- LABEL ENDPOINTS ---
   getLabelsByProject: (projectId) => apiClient.get(`/labels/project/${projectId}`),
   createLabel: (data) => apiClient.post('/labels', data),
+
+  // --- SPACE ENDPOINTS (MOCKED) ---
+  getSpaces: () => {
+    // Return mock data for spaces since backend doesn't have it yet
+    return Promise.resolve({
+      ok: true,
+      data: [
+        { id: 'space-1', name: 'Công nghệ phần mềm', color: '#0C66E4' },
+        { id: 'space-2', name: 'Marketing & Sales', color: '#1F845A' }
+      ]
+    })
+  },
+  createSpace: (data) => {
+    // Return the created mock space
+    return Promise.resolve({
+      ok: true,
+      data: { id: `space-${Date.now()}`, ...data }
+    })
+  }
 }

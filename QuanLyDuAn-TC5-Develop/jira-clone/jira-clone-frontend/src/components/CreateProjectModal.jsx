@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { api } from '../services/api'
 import { useToast } from './Toast'
 
@@ -6,8 +6,22 @@ export default function CreateProjectModal({ onClose, onProjectCreated }) {
   const [name, setName] = useState('')
   const [keyPrefix, setKeyPrefix] = useState('')
   const [templateType, setTemplateType] = useState('scrum')
-  const addToast = useToast()
+  const [spaceId, setSpaceId] = useState('')
+  const [spaces, setSpaces] = useState([])
+  const { addToast } = useToast()
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    fetchSpaces()
+  }, [])
+
+  const fetchSpaces = async () => {
+    const res = await api.getSpaces()
+    if (res.ok) {
+      setSpaces(res.data)
+      if (res.data.length > 0) setSpaceId(res.data[0].id)
+    }
+  }
 
   // Auto-generate key prefix safely when name changes
   const handleNameChange = (e) => {
@@ -29,20 +43,21 @@ export default function CreateProjectModal({ onClose, onProjectCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!name || !keyPrefix) return addToast('warning', 'Vui lòng điền đủ thông tin')
+    if (!name || !keyPrefix) return addToast('Vui lòng điền đủ thông tin', 'warning')
     
     setLoading(true)
     try {
       const res = await api.createProject({
         name,
         keyPrefix: keyPrefix.toUpperCase(),
-        templateType
+        templateType,
+        spaceId
       })
-      addToast('success', 'Tạo dự án thành công')
+      addToast('Tạo dự án thành công', 'success')
       if (onProjectCreated) onProjectCreated(res.data)
       onClose()
     } catch (err) {
-      addToast('error', err.response?.data?.message || 'Tạo dự án thất bại')
+      addToast(err.response?.data?.message || 'Tạo dự án thất bại', 'error')
     } finally {
       setLoading(false)
     }
@@ -79,15 +94,29 @@ export default function CreateProjectModal({ onClose, onProjectCreated }) {
             />
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#5E6C84', marginBottom: '8px' }}>Mã dự án (Key) *</label>
-            <input 
-              type="text" 
-              value={keyPrefix} 
-              onChange={(e) => setKeyPrefix(e.target.value.toUpperCase())}
-              style={{ width: '100px', padding: '8px 12px', borderRadius: '3px', border: '2px solid #DFE1E6', fontSize: '14px', outline: 'none', textTransform: 'uppercase' }}
-            />
-            <div style={{ fontSize: '11px', color: '#6B778C', marginTop: '4px' }}>Dùng làm tiền tố cho các thẻ việc (ví dụ: HR-1, HR-2)</div>
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#5E6C84', marginBottom: '8px' }}>Mã dự án (Key) *</label>
+              <input 
+                type="text" 
+                value={keyPrefix} 
+                onChange={(e) => setKeyPrefix(e.target.value.toUpperCase())}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '3px', border: '2px solid #DFE1E6', fontSize: '14px', outline: 'none', textTransform: 'uppercase' }}
+              />
+            </div>
+            <div style={{ flex: 2 }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#5E6C84', marginBottom: '8px' }}>Không gian (Space)</label>
+              <select 
+                value={spaceId} 
+                onChange={(e) => setSpaceId(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '3px', border: '2px solid #DFE1E6', fontSize: '14px', outline: 'none', backgroundColor: '#FAFBFC' }}
+              >
+                {spaces.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+                {spaces.length === 0 && <option value="">Đang tải hoặc chưa có không gian...</option>}
+              </select>
+            </div>
           </div>
 
           <div style={{ marginBottom: '24px' }}>

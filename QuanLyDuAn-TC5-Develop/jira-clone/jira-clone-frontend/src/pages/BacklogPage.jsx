@@ -7,7 +7,7 @@ import IssueDetailDrawer from '../components/IssueDetailDrawer'
 
 export default function BacklogPage({ onLogout }) {
   const { id } = useParams()
-  const addToast = useToast()
+  const { addToast } = useToast()
 
   const [sprints, setSprints] = useState([])
   const [issues, setIssues] = useState([])
@@ -41,7 +41,7 @@ export default function BacklogPage({ onLogout }) {
       ;(sprintRes.data || []).forEach(s => expanded[s.id] = true)
       setExpandedSections(expanded)
     } catch (e) {
-      addToast('error', 'Không thể tải Backlog')
+      addToast('Không thể tải Backlog', 'error')
     } finally {
       setLoading(false)
     }
@@ -66,9 +66,9 @@ export default function BacklogPage({ onLogout }) {
       setIssues([...issues, res.data])
       setNewSummary('')
       setCreatingIn(null)
-      addToast('success', 'Đã tạo issue')
+      addToast('Đã tạo issue', 'success')
     } catch (e) {
-      addToast('error', 'Tạo issue thất bại')
+      addToast('Tạo issue thất bại', 'error')
     }
   }
 
@@ -85,9 +85,9 @@ export default function BacklogPage({ onLogout }) {
       })
       setSprints([...sprints, res.data])
       setExpandedSections(prev => ({ ...prev, [res.data.id]: true }))
-      addToast('success', `Đã tạo Sprint ${sprintNum}`)
+      addToast(`Đã tạo Sprint ${sprintNum}`, 'success')
     } catch (e) {
-      addToast('error', 'Tạo Sprint thất bại')
+      addToast('Tạo Sprint thất bại', 'error')
     }
   }
 

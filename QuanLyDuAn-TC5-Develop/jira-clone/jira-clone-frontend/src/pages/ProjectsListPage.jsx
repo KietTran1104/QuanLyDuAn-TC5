@@ -31,7 +31,21 @@ export default function ProjectsListPage({ onLogout }) {
   }
 
   // The backend might not support starred feature yet, but we mock it frontend-side for now
-  const filtered = projects.filter(p => activeTab === 'all' || (activeTab === 'starred' && p.starred))
+  const filtered = projects.filter(p => {
+    if (activeTab === 'all') return true
+    if (activeTab === 'starred') return p.starred
+    if (activeTab === 'mine') return true // For now, all fetched projects are "mine"
+    return true
+  })
+
+  const toggleStar = (projectId, e) => {
+    e.stopPropagation()
+    setProjects(projects.map(p => 
+      p.id === projectId ? { ...p, starred: !p.starred } : p
+    ))
+    const project = projects.find(p => p.id === projectId)
+    addToast(!project.starred ? 'Đã đánh dấu sao dự án' : 'Đã bỏ đánh dấu sao', 'success')
+  }
 
   const handleProjectClick = (projectId) => {
     navigate(`/projects/${projectId}/board`)
@@ -73,7 +87,9 @@ export default function ProjectsListPage({ onLogout }) {
             <div 
               key={project.id} 
               onClick={() => handleProjectClick(project.id)}
-              style={{ backgroundColor: '#FFFFFF', border: '1px solid #DCDFE4', borderRadius: '8px', padding: '16px', cursor: 'pointer', position: 'relative', transition: 'box-shadow 0.2s', ':hover': { boxShadow: '0 4px 8px rgba(9,30,66,0.1)' } }}
+              style={{ backgroundColor: '#FFFFFF', border: '1px solid #DCDFE4', borderRadius: '8px', padding: '16px', cursor: 'pointer', position: 'relative', transition: 'box-shadow 0.2s' }}
+              onMouseOver={e => e.currentTarget.style.boxShadow = '0 4px 8px rgba(9,30,66,0.1)'}
+              onMouseOut={e => e.currentTarget.style.boxShadow = 'none'}
             >
               
               <button style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -102,7 +118,7 @@ export default function ProjectsListPage({ onLogout }) {
                 </div>
                 
                 <button 
-                  onClick={(e) => { e.stopPropagation(); /* TODO: api.toggleStar */ }} 
+                  onClick={(e) => toggleStar(project.id, e)} 
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill={project.starred ? '#F4AC00' : 'none'} stroke={project.starred ? '#F4AC00' : '#8590A2'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -124,7 +140,8 @@ export default function ProjectsListPage({ onLogout }) {
         <CreateProjectModal 
           onClose={() => setShowModal(false)}
           onProjectCreated={(newProject) => {
-            setProjects([...projects, newProject])
+            setProjects(prev => [...prev, { ...newProject, membersCount: 1 }])
+            setActiveTab('all') // Switch to All to see the new project
           }}
         />
       )}
