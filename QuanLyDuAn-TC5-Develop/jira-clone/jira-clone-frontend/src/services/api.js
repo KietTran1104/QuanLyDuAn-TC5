@@ -101,7 +101,6 @@ export const api = {
   getIssue: (issueId) => apiClient.get(`/issues/${issueId}`),
   createIssue: (data) => apiClient.post('/issues', data),
   updateIssue: (issueId, data) => apiClient.put(`/issues/${issueId}`, data),
-  updateIssueSprint: (issueId, data) => apiClient.put(`/issues/${issueId}/sprint`, data),
   moveIssue: (issueId, data) => apiClient.put(`/issues/${issueId}/move`, data),
   deleteIssue: (issueId) => apiClient.delete(`/issues/${issueId}`),
 
@@ -115,20 +114,12 @@ export const api = {
   // --- SPRINT ENDPOINTS ---
   getSprintsByProject: (projectId) => apiClient.get(`/sprints/project/${projectId}`),
   createSprint: (data) => apiClient.post('/sprints', data),
-  updateSprint: (sprintId, data) => apiClient.put(`/sprints/${sprintId}`, data),
-  deleteSprint: (sprintId) => apiClient.delete(`/sprints/${sprintId}`),
-  completeSprint: (sprintId, data) => apiClient.post(`/sprints/${sprintId}/complete`, data),
 
   // --- PROJECT MEMBER ENDPOINTS ---
   getProjectMembers: (projectId) => apiClient.get(`/projects/${projectId}/members`),
   addProjectMember: (projectId, data) => apiClient.post(`/projects/${projectId}/members`, data),
   removeProjectMember: (projectId, userId) => apiClient.delete(`/projects/${projectId}/members/${userId}`),
-  updateMemberRole: (projectId, userId, roleId) => apiClient.put(`/projects/${projectId}/members/${userId}/role`, { roleId }),
-  getMyRoleInProject: (projectId) => apiClient.get(`/projects/${projectId}/my-role`),
   deleteProject: (projectId) => apiClient.delete(`/projects/${projectId}`),
-
-  // --- ROLE ENDPOINTS ---
-  getRoles: () => apiClient.get('/roles'),
 
   // --- LABEL ENDPOINTS ---
   getLabelsByProject: (projectId) => apiClient.get(`/labels/project/${projectId}`),

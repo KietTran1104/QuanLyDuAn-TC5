@@ -62,24 +62,4 @@ public class ProjectController {
         projectService.removeMember(projectId, userId);
         return ResponseEntity.ok(Map.of("message", "Đã xóa thành viên."));
     }
-
-    /** Lấy vai trò của bản thân trong dự án */
-    @GetMapping("/{projectId}/my-role")
-    public ResponseEntity<Map<String, String>> getMyRole(
-            @PathVariable Long projectId,
-            Authentication auth) {
-        Long userId = (Long) auth.getPrincipal();
-        String role = projectService.getMyRoleInProject(projectId, userId);
-        return ResponseEntity.ok(Map.of("role", role));
-    }
-
-    /** Cập nhật vai trò cho một thành viên */
-    @PutMapping("/{projectId}/members/{userId}/role")
-    public ResponseEntity<ProjectMemberResponse> updateMemberRole(
-            @PathVariable Long projectId,
-            @PathVariable Long userId,
-            @RequestBody Map<String, Long> body) {
-        Long roleId = body.get("roleId");
-        return ResponseEntity.ok(projectService.updateMemberRole(projectId, userId, roleId));
-    }
 }

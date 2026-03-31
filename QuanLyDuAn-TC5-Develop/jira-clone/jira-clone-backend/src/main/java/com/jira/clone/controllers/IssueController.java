@@ -59,13 +59,6 @@ public class IssueController {
         return ResponseEntity.ok(issueService.updateIssue(issueId, request));
     }
 
-    @PutMapping("/{issueId}/sprint")
-    public ResponseEntity<IssueResponse> updateIssueSprint(
-            @PathVariable Long issueId,
-            @RequestBody IssueSprintUpdateRequest request) {
-        return ResponseEntity.ok(issueService.updateIssueSprint(issueId, request.getSprintId()));
-    }
-
     @DeleteMapping("/{issueId}")
     public ResponseEntity<?> deleteIssue(@PathVariable Long issueId) {
         issueService.deleteIssue(issueId);

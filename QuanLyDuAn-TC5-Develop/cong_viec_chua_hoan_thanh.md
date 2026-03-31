@@ -1,70 +1,81 @@
 # DANH SÁCH CÁC TÍNH NĂNG CHƯA HOÀN THIỆN & ROADMAP DỰ ÁN (JIRA CLONE)
 
-Dưới đây là bảng phân tích toàn diện dựa trên cả **Giao diện hiện tại (UI)** và **Cấu trúc Cơ sở dữ liệu chìm (Backend Entities)**. Bạn đã thiết kế backend rất đồ sộ và tiệm cận Jira thật, nhưng frontend vẫn còn bỏ ngỏ khá nhiều "mỏ vàng" này.
+Dưới đây là thiết kế lộ trình phát triển và **Bộ Quy tắc chống Conflict** dành cho toàn team để ai cũng có thể code mượt mà không dẫm chân nhau.
 
 ---
 
-## 🚀 1. Kéo thả & Quản lý Công việc (Issues)
-- [ ] **Kéo thả Issue chuẩn LexoRank:** Mặc dù bạn đã có trường `boardPosition` ở entity `Issue` dùng để lưu trữ thuật toán sắp xếp đa tầng (LexoRank), nhưng hiện tại Frontend khi thả chuột không gọi API để cập nhật vị trí này, dẫn tới việc tải lại trang là mất trật tự.
-- [ ] **Quản lý Cột thẻ (Di chuyển Column giống Jira):** Không chỉ kéo thả Issue, người dùng còn cần chức năng kéo thả toàn bộ Cột (Status) sang trái/phải để cấu hình quy trình làm việc (Workflow).
-- [ ] **Tạo Issue (Nhanh):** Nút "+ Tạo issue" ở dưới cùng mỗi cột Kanban hiện chưa làm gì, cần form nhập text nhanh thay vì bắt mở modal bự.
-- [ ] **Sub-tasks (Công việc con) & CRUD:** Dù backend đã cấu hình quan hệ `@ManyToOne parentIssue` và `@OneToMany subtasks`, nhưng bên màn hình `IssueDetailDrawer` vẫn chưa lồng giao diện để người dùng có thể Thêm (C), Đọc (R), Sửa (U), Xóa (D) hay phân công Task con.
-- [ ] **Story Points và Due Date:** Trường `estimatePoints` (Điểm ảo cho Sprint) và `dueDate` (Ngày hạn chót) có sẵn trong DB nhưng UI lúc bấm vào chi tiết Công việc không có ô nhập liệu/hiển thị.
+## ⚖️ 0. QUY CHUẨN CODE & TRÁNH CONFLICT (ALL DEV PHẢI ĐỌC)
 
-## 🏃‍♂️ 2. Quản trị Sprint (Backlog)
-- [ ] **RUD (Read - Update - Delete):** Bạn mới chỉ làm được bước "Tạo Sprint" (Create). Còn màn hình để bấm vào sửa tên Sprint, đổi ngày Bắt đầu / Kết thúc, hay Xóa một Sprint bị tạo nhầm thì hoàn toàn chưa có.
-- [ ] **Chức năng "Hoàn thành Sprint":** Thiếu logic cực kỳ quan trọng của Agile: Nút "Complete Sprint" đóng băng Sprint hiện tại và tạo pop-up hỏi người dùng muốn đẩy các Issue chưa hoàn thành (Todo/In Progress) sang Sprint mới hay ném trả lại về Backlog.
+Để chấm dứt tình trạng sửa đè code nhau khi team đông người, toàn bộ Controller và API phải tuân thủ chuẩn sau:
 
-## 👥 3. Nhân sự, Phân quyền & Vai trò (Team Members & Roles)
-- [ ] **Lỗi hiển thị / Mapping Member:** Dữ liệu ở bảng `ProjectMember` trong Backend đã lưu đủ các thành viên và có thể cả Role (Vai trò), nhưng khi đẩy ra API và ráp lên React, hệ thống hiển thị bị lệch (không đúng danh sách DB, hoặc không hiện được avatar/role chuẩn xác).
-- [ ] **Khuyết chỗ chọn Role (Vai trò) khi mời người mới:** Trong Form/Pop-up gõ Email hoặc Username mời người mới vào dự án, bạn ĐANG THIẾU một cái Dropdown ( `<select>` ) để ấn định quyền luôn cho họ (VD: Chọn họ làm `Developer`, hay `Viewer`, hay `Scrum Master`).
-- [ ] **Luồng kiểm tra Quyền (Permission Control) chưa hoạt động:** Bạn đã có bảng `Role` và `ProjectMember` ở DB, nhưng API chưa chặn quyền. Ví dụ: Một người chỉ là `Viewer` nhưng vẫn đang gọi được API xóa Issue, hoặc nút "Xóa" chưa bị ẩn đi đối với mảng UI của họ. Cần định nghĩa rõ các Role được làm gì và ứng dụng trực tiếp vào UI.
-
-## 🏷️ 4. Quản lý Tag/Nhãn (Labels)
-- [ ] **Thiếu CRUD cho Label:** Nhãn chức năng mới dừng ở mảng "Tạo". Không có chỗ quản lý chung để Xóa hay Đổi màu (URD) nhãn.
-- [ ] **Gắn Label vào Issue:** Mối quan hệ `@ManyToMany` ở bảng `issue_labels` chưa được tận dụng. Trong thẻ Chi tiết Issue hoàn toàn không có Component Select/Dropdown nào để đính thẻ Bug vàng/đỏ... lên Issue.
-
-## 🖼️ 5. Cài đặt Dự án & Lưu trữ (Project Settings & Storage)
-- [ ] **Lưu ảnh (Avatar Upload System):** Hiện tại hệ thống KHÔNG có nơi để chứa tệp vật lý. Việc "Đổi ảnh đại diện dự án" ở Setting chỉ là đổi UI tĩnh. Cần bổ sung logic Backend nhận `MultipartFile` và tải lên ổ cứng Server hoặc cấu hình Amazon S3/Cloudinary, sau đó mới cập nhật URL vào DB.
-- [ ] **Cập nhật Setting:** Trang `ProjectSettingsPage` khi ấn Lưu vẫn chỉ đang thả Toast ảo (Mock), chưa nối với Backend để Update tên / Key dự án thực.
-
-## 📈 6. Báo cáo & Thống kê (Reports)
-- [ ] **Báo cáo Dữ liệu giả (Mock UI):** Màn hình biểu đồ báo cáo tốc độ (Velocity) hay Burndown chart hoàn toàn dùng thư viện vẽ tĩnh. Cần viết các truy vấn SQL `GROUP BY` đếm số Issue theo Status và theo Sprint để nhét vào biểu đồ này.
+1. **Chuẩn hóa Đầu ra API (Response):** 
+   - Không trả về `Map` hay Entity thô. Bắt buộc tạo một class `ApiResponse<T>` dùng chung cho toàn dự án gồm: `status` (int), `message` (String), `data` (T). Gọi ở mọi controller: `return ResponseEntity.ok(new ApiResponse<>(data, "Thành công"));`
+2. **Quản lý Lỗi (Exception Handling) tập trung:**
+   - Cấm viết `try-catch` lắt nhắt trong Controller. Phải tạo một file `@RestControllerAdvice` duy nhất để tóm mọi Exception ném ra từ Service và trả về mã lỗi 400/500 kèm tin nhắn chuẩn.
+3. **Phân chia ranh giới Service (Quy tắc "Không sửa file của người khác"):**
+   - **Phong** làm `Issue`, **Kiệt** làm `Sprint`. Nếu Kiệt cần cập nhật Issue, Kiệt KHÔNG ĐƯỢC viết code vào `SprintServiceImpl`, mà phải gọi API/hàm do Phong đã viết sẵn bên `IssueService` (VD: Hàm `moveIssue()`).
+4. **Luồng Git (Git Flow) cho Team:**
+   - Mỗi người tự tạo nhánh riêng: `feature/phong-board`, `feature/kiet-sprint`.
+   - Mỗi sáng trước khi code: Chạy `git pull origin develop`. Ai bị báo lỗi đỏ tự resolve ở máy mình trước. Hết ngày mới gộp nhâm.
 
 ---
 
-## 💎 7. NHỮNG "VŨ KHÍ ẨN" TRONG BACKEND BẠN CHƯA KÉO RA UI
+## 🚀 1. Kéo thả & Quản lý Công việc (Issues) - **[Phụ trách: Phong]**
+- [ ] **Kéo thả Issue chuẩn LexoRank:** API `PUT /api/issues/{id}/move` CHUNG đã được viết. Nhiệm vụ của Phong là tích hợp `dnd-kit` bên Frontend màn hình Kanban, và bắn tọa độ `newBoardPosition`, `newStatusId` để thẻ nhảy cột chuẩn.
+- [ ] **Quản lý Cột thẻ (Di chuyển Column giống Jira):** Không chỉ kéo thả Issue, cần tính năng kéo thả Cột (Status) để cấu hình workflow.
+- [ ] **Tạo Issue (Nhanh):** Nút "+ Tạo issue" dưới cột Kanban cần là ô textarea inline.
+- [ ] **Sub-tasks (Công việc con) & CRUD:** Thiết kế và nối API cho phần Task con bên trong màn `IssueDetailDrawer`.
+- [ ] **Story Points và Due Date:** Form nhập Điểm ảo và Hạn chót ở khung chi tiết.
 
-Sau khi "soi" cấu trúc DB trong folder `models/entities`, tui phát hiện bạn đã vẽ ra một bản thiết kế cực kỳ xịn nhưng chưa hề lập trình UI cho chúng:
+## 🏃‍♂️ 2. Quản trị Sprint (Backlog) - **[Phụ trách: Kiệt]**
+- [ ] **Kéo thả Backlog ↔ Sprint:** Tái sử dụng chung API `PUT /api/issues/{id}/move` đã có. Khi Kiệt bốc Issue ném vào Sprint thì chỉ cần cài tham số `{newSprintId}` (hoặc `{removeFromSprint}` nếu đẩy ném ra ngoài). Không cần viết lại backend!
+- [ ] **RUD (Read - Update - Delete):** Bổ sung nút sửa tên, thời gian, và xóa các Sprint bị lỗi.
+- [ ] **Chức năng "Hoàn thành Sprint":** Logic chuyển giao các Issue chưa hoàn thành vắt sang Sprint tới, và thay đổi trạng thái của thẻ Sprint.
 
-- [ ] **🤖 Tích hợp AI (Trí tuệ Nhân tạo):** Bạn có bảng `AiUsageLog` và `ProjectAiConfig`. Đây là mỏ vàng! Có thể là tính năng Gen Mô tả Issue tự động hoặc Gen Subtask bằng ChatGPT, nhưng ở Frontend chưa có bất kỳ cái nút lấp lánh AI nào.
-- [ ] **🔗 Mối quan hệ Chéo (Issue Links):** Bảng `IssueLink`. Jira rất mạnh ở vụ: "Task A chặn Task B" (Blocks) hoặc "Liên quan đến". Backend có rồi, Frontend cần khu vực *Linked Issues*.
-- [ ] **⏱️ Lịch sử Hoạt động (Audit Log):** Bảng `IssueActivityLog`. Ai đã chuyển trạng thái từ Todo sang In Progress vào lúc mấy giờ? Dữ liệu log đã có thiết kế, nhung Tab "Lịch sử" trong IssueDetail chỉ xả ra chữ "Đang phát triển".
-- [ ] **📎 Đính kèm Tệp (Attachments):** Bảng `Attachment`. Khi comment hay viết mô tả, người dùng cần nút Kẹp giấy để đính kèm File PDF/Ảnh. Do chưa xây Storage cho Ảnh dự án (ở mục 5) nên Attachment cũng đang bị " đóng băng".
-- [ ] **🔔 Notification (Quả chuông thông báo):** Bảng `Notification` kết hợp WebSockets/STOMP. Ai đó vừa gán việc cho bạn, quả chuông góc trên bên phải chưa nảy số đỏ và chưa có bảng popup thông báo kéo xuống.
-- [ ] **⭐ Đánh dấu Yêu thích (User Stars):** Bảng `UserStar`. Chức năng cắm Cờ/Sao vàng lưu lại Dự án/Filter hay dùng (để cho lên phần Favorite của Sidebar/Header Navbar).
+## 👥 3. Nhân sự, Phân quyền & Vai trò (Team Members & Roles) - **[Phụ trách: Thành viên 3 / Nhóm Hệ thống]**
+*(⚠️ Lưu ý ranh giới: Nhóm này chịu trách nhiệm "gác cổng". Cần viết 1 bộ Security Interceptor (AOP / Spring Security) để mọi Request của Phong và Kiệt chạy qua đều bị kiểm tra quyền, thay vì bắt Phong/Kiệt tự nhúng code check quyền vào API của họ).*
+
+- [ ] **Khuyết chỗ chọn Role (Vai trò) khi mời người mới:** Bổ sung `<select>` Role (`Developer`, `Viewer`, `Scrum Master`) vào form mời thành viên.
+- [ ] **Luồng kiểm tra Quyền (Permission Control) chưa hoạt động:** Định nghĩa rõ Role nào được làm gì (VD: Viewer không được hiện nút Xóa Issue). Viết Annotation kiểu `@CheckProjectPermission` cắm lên đầu các Controller.
+- [ ] **Lỗi hiển thị / Mapping Member:** Ráp lại UI danh sách thành viên cho đúng dữ liệu từ DB (hiện đủ avatar / role).
+
+## 🏷️ 4. Quản lý Tag/Nhãn (Labels) - **[Phụ trách: Thành viên 4 / Nhóm Core Data]**
+*(⚠️ Lưu ý ranh giới: Nhóm này viết API CRUD Label độc lập. Khi hoàn thành, cung cấp API `GET /api/labels` để Phong tự động nhúng vào mảng Dropdown bên trong `IssueDetailDrawer` của Phong).*
+
+- [ ] **Thiếu CRUD cho Label:** Cần 1 màn hình quản lý chung (Setting > Labels) để Tạo / Đổi màu / Xóa nhãn.
+- [ ] **Gắn Label vào Issue:** Xử lý logic bảng trung gian `@ManyToMany` (issue_labels). Cho phép thêm/xóa tag trên từng thẻ Issue tĩnh.
+
+## 🖼️ 5. Cài đặt Dự án & Lưu trữ (Project Settings & Storage) - **[Phụ trách: Thành viên 3 / Nhóm Hệ thống]**
+*(⚠️ Lưu ý ranh giới: Tránh code upload rác. Phải viết 1 class `FileStorageService` chung duy nhất. Bất kể sau này Avatar hay Đính kèm (Attachment) cần lưu file, đều gọi chung 1 service này).*
+
+- [ ] **Lưu ảnh (Avatar Upload System):** Backend cần nhận `MultipartFile` và tải lên ổ cứng Server hoặc Cloudinary/S3. Trả về String URL.
+- [ ] **Cập nhật Setting:** Trang `ProjectSettingsPage` cần nối API cập nhật thông tin thực (Tên, Key, Avatar) thay vì chỉ Toast ảo.
+
+## 📈 6. Báo cáo & Thống kê (Reports) - **[Phụ trách: Nhóm Frontend + SQL]**
+*(⚠️ Lưu ý ranh giới: Mảng này TUYỆT ĐỐI không được gọi lệnh Update/Delete. Chỉ viết các câu Query/JPA `@Query` thuần `SELECT ... GROUP BY` siêu tốc độ để vẽ biểu đồ, tránh làm chậm Service của Kiệt/Phong).*
+
+- [ ] **Báo cáo Dữ liệu giả (Mock UI):** Biểu đồ Velocity / Burndown đang tĩnh. Cần viết SQL đếm số Issue theo Status và Sprint để nhúng vào Chart.js / Recharts.
 
 ---
 
-## 📊 8. PHÂN TÍCH KHẢ THI: XÂY DỰNG GIAO DIỆN TIMELINE / GANTT CHART
+## 💎 7. NHỮNG "VŨ KHÍ ẨN" TRONG BACKEND (FEATURES NÂNG CAO)
+*(Phần này phân chia tùy theo nguồn lực còn lại của Team - Sprint 2 hoặc Sprint 3)*
 
-Dựa vào việc "soi" cấu trúc Entity Backend của bạn hiện tại, tui đánh giá khả năng bạn tự code được màn hình Timeline (như Jira Plan) như sau:
+- [ ] **🤖 Tích hợp AI (Trí tuệ Nhân tạo):** UI chưa có nút Gen Mô tả / Subtask tự động bằng AI dù DB có bảng `AiUsageLog`.
+- [ ] **🔗 Mối quan hệ Chéo (Issue Links):** Bảng `IssueLink` (Blocks / Relates to) có ở DB, Frontend cần code mục *Linked Issues* trong Drawer.
+- [ ] **⏱️ Lịch sử Hoạt động (Audit Log):** Bảng `IssueActivityLog`. Ai đã làm gì lúc mấy giờ? Cần đổ ra Tab "Lịch sử" của Issue.
+- [ ] **📎 Đính kèm Tệp (Attachments):** Dùng chung `FileStorageService` ở mục 5 để sinh nút Đính kèm PDF/Ảnh.
+- [ ] **🔔 Notification (Quả chuông thông báo) + STOMP:** Chuông góc trên chưa nảy số đỏ khi bị gán Task.
+- [ ] **⭐ Đánh dấu Yêu thích (User Stars):** Cắm cờ Dự án yêu thích đẩy lên thanh Header Nav.
 
-### ⏳ 1. Trục thời gian (Thanh ngang bắt đầu & Kết thúc)
-Biểu đồ Timeline cần vẽ các thanh ngang chạy dài trên lịch.
-- **Bạn đã có:** Cột `dueDate` (Ngày đến hạn) trong entity `Issue.java`.
-- **Bạn đang THIẾU:** Hoàn toàn **chưa có cột `startDate`** (Ngày bắt đầu) ở Backend! Nếu không có ngày bắt đầu, ứng dụng Frontend lấy đâu ra mốc tọa độ x=0 để vẽ chiều dài của thanh nằm ngang? 
-- **Giải pháp bắt buộc:** Bạn phải vào mở `Issue.java`, thêm trường `@Column(name = "start_date") private LocalDateTime startDate;`, sau đó ALTER TABLE MySQL để cập nhật DB, và nhúng nó vào UI.
+---
 
-### 🌳 2. Cấu trúc cây phân cấp (Epic > Task > Sub-Task)
-Timeline thường gom nhóm / lồng các thanh ngang vào bên dưới một thanh quản lý lớn (Epic) có thể bấm tam giác (Collapse/Expand).
-- **Tuyệt vời! Bạn ĐÃ CÓ VŨ KHÍ NÀY:** Trong `Issue.java`, bạn đã thiết kế sẵn liên kết `@ManyToOne parentIssue` và quy ước luôn mảng `@OneToMany subtasks`. Nghĩa là bạn hoàn toàn có thể dùng nó để đẻ ra cấu trúc cây: Issue to nhất (Epic) sẽ có bảng `parent_issue_id` là null, các Issue con (Task) sẽ chỏ `parent_issue_id` vào Epic đó. Dữ liệu này dư sức để React vẽ cây phân cấp chuẩn Jira!
+## 📊 8. GIAO DIỆN TIMELINE / GANTT CHART
+*(UI tui đã giúp bạn code bằng CSS biến nội bộ xong rồi, chuẩn 100% Jira Layout! Dev chỉ cần làm Backend)*
 
-### 🔗 3. Mũi tên phụ thuộc (Dependency Lines - Chặn / Bị chặn)
-Khi một Task A phải xong thì Task B mới được làm, Timeline xịn sẽ có một sợi dây cong nối đít thằng A sang mép đầu thằng B.
-- **Hoàn hảo! Bạn ĐÃ CÓ BẢNG NÀY ĐỂ KÉO DÂY:** Nhìn vào backend, bạn đã thiết kế sẵn entity `IssueLink.java`! Nó lưu trữ chính xác quan hệ giữa `outwardIssue` và `inwardIssue` kèm theo kiểu (Type) như "blocks", "relates to". Khi làm UI Timeline, bạn chỉ việc fetch mảng này ra và dùng thư viện SVG/Canvas để vẽ các đường cung chỉ từ Task ID này sang Task ID khác cực kỳ xịn sò.
-
-**⚡ Tổng kết Timeline:** DB của bạn đã được chuẩn bị 80% sức mạnh cho trò chơi Timeline lớn. **Yếu điểm duy nhất là bạn quên thêm `startDate` vào bảng Issue.** Chấm hết!
+- [ ] **Thêm `startDate` (Cực Kỳ Quan Trọng):** Backend hiện chỉ có `dueDate` (Ngày đến hạn), cấu hình thiếu mốc bắt đầu. **BẮT BUỘC** bổ sung `@Column startDate` vào `Issue.java` để UI Timeline có tọa độ ngõ ra.
+- [ ] **Ráp API Data thực:** Thay thế mảng `mockData` tĩnh tui viết ở `ProjectTimelinePage` bằng data lấy từ API Fetch `Issue` (Sắp xếp theo Parent-Child Epic).
+- [ ] **Vẽ Dây Dependency (Mũi tên liên kết):** Dựa vào data từ bảng `IssueLink` (Mục 7) để tính toán vẽ đường dẫn cong ngang nối 2 mép thanh Task trên biểu đồ.
 
 ---
 **💡 Gợi ý tiến độ (Sprint Planning) cho Developer:**
