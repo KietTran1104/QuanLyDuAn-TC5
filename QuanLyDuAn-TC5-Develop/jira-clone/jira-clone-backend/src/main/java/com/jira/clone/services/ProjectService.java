@@ -11,4 +11,6 @@ public interface ProjectService {
     ProjectMemberResponse addMember(Long projectId, ProjectMemberRequest request);
     List<ProjectMemberResponse> getMembers(Long projectId);
     void removeMember(Long projectId, Long userId);
+    String getMyRoleInProject(Long projectId, Long userId);
+    ProjectMemberResponse updateMemberRole(Long projectId, Long userId, Long roleId);
 }

@@ -10,5 +10,6 @@ public interface IssueService {
     List<IssueResponse> getIssuesByBoardColumn(Long projectId, Long statusId);
     IssueResponse moveIssue(Long issueId, IssueMoveRequest request);
     IssueResponse updateIssue(Long issueId, IssueUpdateRequest request);
+    IssueResponse updateIssueSprint(Long issueId, Long sprintId);
     void deleteIssue(Long issueId);
 }

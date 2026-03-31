@@ -4,6 +4,16 @@ import Layout from '../components/Layout'
 import { api } from '../services/api'
 import { useToast } from '../components/Toast'
 import IssueDetailDrawer from '../components/IssueDetailDrawer'
+import EditSprintModal from '../components/EditSprintModal'
+import CompleteSprintModal from '../components/CompleteSprintModal'
+import { 
+  DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, 
+  useSensor, useSensors, defaultDropAnimationSideEffects 
+} from '@dnd-kit/core'
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import BacklogDroppableArea from '../components/BacklogDroppableArea'
+import BacklogDraggableIssue from '../components/BacklogDraggableIssue'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 export default function BacklogPage({ onLogout }) {
   const { id } = useParams()
@@ -19,6 +29,17 @@ export default function BacklogPage({ onLogout }) {
   // Quick-create issue
   const [creatingIn, setCreatingIn] = useState(null) // 'backlog' or sprint id
   const [newSummary, setNewSummary] = useState('')
+
+  // Sprint action modals
+  const [editingSprint, setEditingSprint] = useState(null)
+  const [completingSprint, setCompletingSprint] = useState(null)
+
+  // Drag and drop state
+  const [activeIssue, setActiveIssue] = useState(null)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
 
   useEffect(() => {
     fetchBacklogData()
@@ -72,6 +93,27 @@ export default function BacklogPage({ onLogout }) {
     }
   }
 
+  const handleStartSprint = async (sprintId) => {
+    try {
+      await api.updateSprint(sprintId, { status: 'active' })
+      addToast('Sprint đã bắt đầu!', 'success')
+      fetchBacklogData()
+    } catch(e) {
+      addToast('Lỗi khởi động Sprint', 'error')
+    }
+  }
+
+  const handleDeleteSprint = async (sprintId) => {
+    if(!window.confirm('Bạn có chắc chắn muốn xóa Sprint này không? Các issue sẽ được đưa về Backlog.')) return
+    try {
+      await api.deleteSprint(sprintId)
+      addToast('Đã xóa Sprint', 'success')
+      fetchBacklogData()
+    } catch(e) {
+      addToast('Lỗi khi xóa Sprint', 'error')
+    }
+  }
+
   const handleCreateSprint = async () => {
     try {
       const sprintNum = sprints.length + 1
@@ -91,46 +133,49 @@ export default function BacklogPage({ onLogout }) {
     }
   }
 
-  const getStatusBadge = (statusName) => {
-    const colors = {
-      'TODO': { bg: '#F1F2F4', color: '#626F86' },
-      'IN PROGRESS': { bg: '#E9F2FF', color: '#0C66E4' },
-      'DONE': { bg: '#DCFFF1', color: '#1F845A' },
-    }
-    const c = colors[statusName?.toUpperCase()] || colors['TODO']
-    return c
-  }
-
   const formatSprintDate = (dateStr) => {
     if (!dateStr) return ''
     const d = new Date(dateStr)
     return `${d.getDate()}/${d.getMonth() + 1}`
   }
 
-  const rowStyle = {
-    display: 'flex', alignItems: 'center', height: '40px', padding: '0 16px',
-    borderBottom: '1px solid #EBECF0', backgroundColor: '#FFFFFF', cursor: 'pointer',
-    transition: 'background 0.1s'
+  const renderIssueRow = (iss) => (
+    <BacklogDraggableIssue key={iss.id} issue={iss} onClick={() => setSelectedIssueId(iss.id)} />
+  )
+
+  const handleDragStart = (event) => {
+    const { active } = event
+    if (active.data.current?.type === 'Issue') {
+      setActiveIssue(active.data.current.issue)
+    }
   }
 
-  const renderIssueRow = (iss) => {
-    const badge = getStatusBadge(iss.statusName)
-    return (
-      <div 
-        key={iss.id} style={rowStyle}
-        onClick={() => setSelectedIssueId(iss.id)}
-        onMouseOver={e => e.currentTarget.style.backgroundColor = '#F1F2F4'}
-        onMouseOut={e => e.currentTarget.style.backgroundColor = '#FFFFFF'}
-      >
-        <div style={{ width: '16px', height: '16px', backgroundColor: iss.type === 'bug' ? '#E34935' : iss.type === 'story' ? '#1F845A' : '#0C66E4', borderRadius: '4px', marginRight: '8px', flexShrink: 0 }}></div>
-        <span style={{ fontSize: '13px', color: '#0C66E4', fontWeight: '600', marginRight: '12px', flexShrink: 0 }}>{iss.issueKey}</span>
-        <span style={{ fontSize: '14px', color: '#172B4D', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{iss.summary}</span>
-        <span style={{ fontSize: '12px', color: '#626F86', width: '80px', textAlign: 'right', marginRight: '16px', flexShrink: 0 }}>{iss.assigneeName || 'Chưa giao'}</span>
-        <span style={{ fontSize: '11px', fontWeight: 'bold', backgroundColor: badge.bg, color: badge.color, padding: '2px 6px', borderRadius: '3px', width: '100px', textAlign: 'center', flexShrink: 0 }}>
-          {iss.statusName || 'TODO'}
-        </span>
-      </div>
-    )
+  const handleDragEnd = async (event) => {
+    setActiveIssue(null)
+    const { active, over } = event
+    if (!over) return
+
+    if (active.data.current?.type === 'Issue' && over.data.current?.type === 'SprintArea') {
+      const issue = active.data.current.issue
+      
+      let targetSprintId = null
+      if (over.id !== 'backlog') {
+        const idStr = String(over.id).replace('sprint-', '')
+        targetSprintId = Number(idStr)
+      }
+      
+      if (issue.sprintId === targetSprintId) return // nothing to do
+      
+      // Optimistic update
+      setIssues(prev => prev.map(i => i.id === issue.id ? { ...i, sprintId: targetSprintId } : i))
+      
+      try {
+        await api.updateIssueSprint(issue.id, { sprintId: targetSprintId })
+      } catch (e) {
+        addToast('Lỗi dời Issue. Khôi phục dữ liệu.', 'error')
+        fetchBacklogData()
+      }
+    }
   }
 
   const renderCreateRow = (sectionKey) => (
@@ -167,8 +212,14 @@ export default function BacklogPage({ onLogout }) {
   }
 
   return (
+    <ErrorBoundary>
     <Layout projectId={id || 'WEB'} onLogout={onLogout}>
-      
+      <DndContext 
+        sensors={sensors} 
+        collisionDetection={closestCorners} 
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#172B4D', margin: 0 }}>Backlog</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -197,27 +248,51 @@ export default function BacklogPage({ onLogout }) {
                 <span style={{ fontSize: '12px', color: '#626F86' }}>{sprintIssues.length} issues</span>
                 {sprint.status && (
                   <span style={{ fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '3px', backgroundColor: sprint.status === 'active' ? '#E9F2FF' : '#F1F2F4', color: sprint.status === 'active' ? '#0C66E4' : '#626F86' }}>
-                    {sprint.status === 'active' ? 'Đang chạy' : sprint.status === 'completed' ? 'Đã xong' : 'Chưa bắt đầu'}
+                    {sprint.status === 'active' ? 'Đang chạy' : sprint.status === 'closed' ? 'Đã xong' : 'Chưa bắt đầu'}
                   </span>
                 )}
               </div>
-              <button 
-                onClick={(e) => { e.stopPropagation() }}
-                style={{ height: '28px', padding: '0 12px', backgroundColor: '#F1F2F4', color: '#172B4D', fontSize: '13px', fontWeight: 'bold', border: '1px solid #DCDFE4', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                Bắt đầu Sprint
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {sprint.status !== 'closed' && sprint.status !== 'active' && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleStartSprint(sprint.id) }}
+                    style={{ height: '28px', padding: '0 12px', backgroundColor: '#F1F2F4', color: '#172B4D', fontSize: '13px', fontWeight: 'bold', border: '1px solid #DCDFE4', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Bắt đầu Sprint
+                  </button>
+                )}
+                {sprint.status === 'active' && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setCompletingSprint(sprint) }}
+                    style={{ height: '28px', padding: '0 12px', backgroundColor: '#E9F2FF', color: '#0C66E4', fontSize: '13px', fontWeight: 'bold', border: '1px solid #0C66E4', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Hoàn thành Sprint
+                  </button>
+                )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setEditingSprint(sprint) }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#626F86', fontSize: '13px', fontWeight: '600', textDecoration: 'underline' }}
+                >
+                  Sửa
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDeleteSprint(sprint.id) }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E34935', fontSize: '13px', fontWeight: '600', textDecoration: 'underline' }}
+                >
+                  Xóa
+                </button>
+              </div>
             </div>
             
             {expandedSections[sprint.id] && (
-              <div>
+              <BacklogDroppableArea id={sprint.id} isSprintClosed={sprint.status === 'closed'}>
                 {sprintIssues.length > 0 ? sprintIssues.map(renderIssueRow) : (
                   <div style={{ padding: '24px', textAlign: 'center', color: '#8590A2', fontSize: '14px' }}>
                     Kéo thả issue vào đây hoặc tạo mới bên dưới.
                   </div>
                 )}
                 {renderCreateRow(sprint.id)}
-              </div>
+              </BacklogDroppableArea>
             )}
           </div>
         )
@@ -245,14 +320,14 @@ export default function BacklogPage({ onLogout }) {
         </div>
         
         {expandedSections['backlog'] && (
-          <div>
+              <BacklogDroppableArea id="backlog" isSprintClosed={false}>
             {getBacklogIssues().length > 0 ? getBacklogIssues().map(renderIssueRow) : (
               <div style={{ padding: '24px', textAlign: 'center', color: '#8590A2', fontSize: '14px' }}>
                 Backlog trống. Tạo issue mới để bắt đầu!
               </div>
             )}
             {renderCreateRow('backlog')}
-          </div>
+          </BacklogDroppableArea>
         )}
       </div>
 
@@ -266,6 +341,32 @@ export default function BacklogPage({ onLogout }) {
         />
       )}
 
+      {/* Editing Sprint Modal */}
+      {editingSprint && (
+        <EditSprintModal 
+          sprint={editingSprint}
+          onClose={() => setEditingSprint(null)}
+          onUpdated={() => { setEditingSprint(null); fetchBacklogData() }}
+        />
+      )}
+
+      {completingSprint && (
+        <CompleteSprintModal
+          sprint={completingSprint}
+          issues={issues.filter(i => i.sprintId === completingSprint.id)}
+          statuses={statuses}
+          futureSprints={sprints.filter(s => s.status === 'future' || s.status == null)}
+          onClose={() => setCompletingSprint(null)}
+          onCompleted={() => { setCompletingSprint(null); fetchBacklogData() }}
+        />
+      )}
+
+      <DragOverlay dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.4' } } }) }}>
+        {activeIssue ? <BacklogDraggableIssue issue={activeIssue} /> : null}
+      </DragOverlay>
+
+      </DndContext>
     </Layout>
+    </ErrorBoundary>
   )
 }
