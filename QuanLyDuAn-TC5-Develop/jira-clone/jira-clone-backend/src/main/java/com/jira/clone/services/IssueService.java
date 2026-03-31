@@ -11,4 +11,5 @@ public interface IssueService {
     IssueResponse moveIssue(Long issueId, IssueMoveRequest request);
     IssueResponse updateIssue(Long issueId, IssueUpdateRequest request);
     void deleteIssue(Long issueId);
+    List<IssueResponse> getSubtasks(Long parentIssueId);
 }

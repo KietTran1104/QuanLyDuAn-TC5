@@ -43,17 +43,26 @@ public class IssueServiceImpl implements IssueService {
         User reporter = userRepository.findById(reporterId)
                 .orElseThrow(() -> new RuntimeException("User không tồn tại."));
 
-        // Lấy cột TODO mặc định
+        // Lấy status: dùng statusId từ request nếu có, không thì lấy cột đầu tiên
         List<Status> statuses = statusRepository.findByProjectIdOrderByBoardPositionAsc(project.getId());
-        Status defaultStatus = statuses.stream().findFirst()
-                .orElseThrow(() -> new RuntimeException("Project chưa có trạng thái nào."));
+        Status defaultStatus;
+        if (request.getStatusId() != null) {
+            defaultStatus = statusRepository.findById(request.getStatusId())
+                    .orElse(statuses.stream().findFirst()
+                            .orElseThrow(() -> new RuntimeException("Project chưa có trạng thái nào.")));
+        } else {
+            defaultStatus = statuses.stream().findFirst()
+                    .orElseThrow(() -> new RuntimeException("Project chưa có trạng thái nào."));
+        }
 
-        // Sinh issue key: PREFIX-<count+1>
-        long count = issueRepository.findByProjectId(project.getId()).size();
-        String issueKey = project.getKeyPrefix() + "-" + (count + 1);
+        // Sinh issue key an toàn: dùng MAX thay vì COUNT
+        // → tránh trùng key khi issue bị soft-delete
+        Long maxNumber = issueRepository.findMaxIssueNumberByProjectId(project.getId());
+        long nextNumber = (maxNumber != null ? maxNumber : 0L) + 1;
+        String issueKey = project.getKeyPrefix() + "-" + nextNumber;
 
-        // LexoRank: Sinh vị trí cuối cùng đơn giản
-        String boardPosition = "0|" + String.format("%06d", count + 1) + ":";
+        // LexoRank: gán vị trí cuối
+        String boardPosition = "0|" + String.format("%06d", nextNumber) + ":";
 
         User assignee = null;
         if (request.getAssigneeId() != null) {
@@ -68,9 +77,11 @@ public class IssueServiceImpl implements IssueService {
                 .priority(request.getPriority() != null ? request.getPriority() : IssuePriority.medium)
                 .summary(request.getSummary())
                 .description(request.getDescription())
-                .boardPosition(boardPosition)
+                .estimatePoints(request.getEstimatePoints())
+                .dueDate(request.getDueDate())
                 .reporter(reporter)
                 .assignee(assignee)
+                .boardPosition(boardPosition)
                 .build();
         issue = issueRepository.save(issue);
 
@@ -86,7 +97,7 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     public List<IssueResponse> getIssuesByProject(Long projectId) {
-        return issueRepository.findByProjectId(projectId).stream()
+        return issueRepository.findByProjectIdOrderByBoardPositionAsc(projectId).stream()
                 .map(this::toResponse).collect(Collectors.toList());
     }
 
@@ -107,8 +118,9 @@ public class IssueServiceImpl implements IssueService {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new RuntimeException("Issue không tồn tại."));
 
-        // Optimistic Locking check
-        if (!issue.getVersion().equals(request.getVersion())) {
+        // Optimistic Locking check - chỉ kiểm tra nếu frontend gửi version
+        // Hibernate @Version tự xử lý concurrent conflict ở tầng DB
+        if (request.getVersion() != null && !issue.getVersion().equals(request.getVersion())) {
             throw new RuntimeException(
                 "Xung đột dữ liệu! Issue đã bị chỉnh sửa bởi người khác. Vui lòng tải lại.");
         }
@@ -153,6 +165,18 @@ public class IssueServiceImpl implements IssueService {
         if (request.getDueDate() != null) {
             issue.setDueDate(request.getDueDate());
         }
+        if (request.getEstimatePoints() != null) {
+            issue.setEstimatePoints(request.getEstimatePoints());
+        }
+        if (request.getParentIssueId() != null) {
+            Issue parent = issueRepository.findById(request.getParentIssueId())
+                    .orElseThrow(() -> new RuntimeException("Parent issue không tồn tại."));
+            issue.setParentIssue(parent);
+            // Tự đổi type sang subtask nếu được gán cha
+            if (issue.getType() != com.jira.clone.models.enums.IssueType.subtask) {
+                issue.setType(com.jira.clone.models.enums.IssueType.subtask);
+            }
+        }
 
         issue = issueRepository.save(issue);
         return toResponse(issue);
@@ -167,8 +191,29 @@ public class IssueServiceImpl implements IssueService {
     }
 
     private IssueResponse toResponse(Issue i) {
+        // Map subtasks (chỉ 1 cấp, không đệ quy)
+        List<IssueResponse.SubtaskSummary> subtaskSummaries = (i.getSubtasks() != null)
+            ? i.getSubtasks().stream()
+                .filter(s -> s.getDeletedAt() == null) // chỉ lấy chưa xóa
+                .map(s -> IssueResponse.SubtaskSummary.builder()
+                    .id(s.getId())
+                    .issueKey(s.getIssueKey())
+                    .summary(s.getSummary())
+                    .type(s.getType())
+                    .priority(s.getPriority())
+                    .statusId(s.getStatus().getId())
+                    .statusName(s.getStatus().getName())
+                    .assigneeId(s.getAssignee() != null ? s.getAssignee().getId() : null)
+                    .assigneeName(s.getAssignee() != null ? s.getAssignee().getFullName() : null)
+                    .assigneeAvatarUrl(s.getAssignee() != null ? s.getAssignee().getAvatarUrl() : null)
+                    .estimatePoints(s.getEstimatePoints())
+                    .build())
+                .collect(java.util.stream.Collectors.toList())
+            : new java.util.ArrayList<>();
+
         return IssueResponse.builder()
                 .id(i.getId())
+                .projectId(i.getProject().getId())
                 .issueKey(i.getIssueKey())
                 .type(i.getType())
                 .priority(i.getPriority())
@@ -188,6 +233,18 @@ public class IssueServiceImpl implements IssueService {
                 .sprintName(i.getSprint() != null ? i.getSprint().getName() : null)
                 .createdAt(i.getCreatedAt())
                 .dueDate(i.getDueDate())
+                .estimatePoints(i.getEstimatePoints())
+                .parentIssueId(i.getParentIssue() != null ? i.getParentIssue().getId() : null)
+                .parentIssueKey(i.getParentIssue() != null ? i.getParentIssue().getIssueKey() : null)
+                .subtasks(subtaskSummaries)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<IssueResponse> getSubtasks(Long parentIssueId) {
+        return issueRepository.findByParentIssueId(parentIssueId)
+                .stream().map(this::toResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 }

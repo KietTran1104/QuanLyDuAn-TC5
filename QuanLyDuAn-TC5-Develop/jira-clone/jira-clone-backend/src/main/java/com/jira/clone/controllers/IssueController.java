@@ -59,6 +59,11 @@ public class IssueController {
         return ResponseEntity.ok(issueService.updateIssue(issueId, request));
     }
 
+    @GetMapping("/{issueId}/subtasks")
+    public ResponseEntity<List<IssueResponse>> getSubtasks(@PathVariable Long issueId) {
+        return ResponseEntity.ok(issueService.getSubtasks(issueId));
+    }
+
     @DeleteMapping("/{issueId}")
     public ResponseEntity<?> deleteIssue(@PathVariable Long issueId) {
         issueService.deleteIssue(issueId);

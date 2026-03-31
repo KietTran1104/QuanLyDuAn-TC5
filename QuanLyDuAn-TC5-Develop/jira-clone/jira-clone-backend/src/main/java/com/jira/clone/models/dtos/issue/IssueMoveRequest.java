@@ -13,9 +13,9 @@ public class IssueMoveRequest {
 
     // LexoRank position calculated by frontend based on where task is dropped
     @NotBlank(message = "New board position is required")
-    private String newBoardPosition; 
-    
-    // Crucial for solving concurrent move issues
-    @NotNull(message = "Entity version is required for optimistic locking")
-    private Integer version; 
+    private String newBoardPosition;
+
+    // Optional: version for optimistic locking. Nếu null thì bỏ qua check thủ công,
+    // Hibernate @Version vẫn xử lý concurrent conflict ở tầng DB.
+    private Integer version;
 }
