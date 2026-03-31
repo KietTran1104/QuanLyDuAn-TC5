@@ -1,6 +1,7 @@
 package com.jira.clone.controllers;
 
 import com.jira.clone.models.dtos.issue.*;
+import com.jira.clone.models.dtos.issue.StatusReorderRequest;
 import com.jira.clone.repositories.SprintRepository;
 import com.jira.clone.repositories.StatusRepository;
 import com.jira.clone.models.entities.*;
@@ -70,6 +71,25 @@ public class SprintStatusController {
                 .stream().map(this::toStatusResponse).collect(Collectors.toList()));
     }
 
+    /** Kéo thả cột (Column): Cập nhật thứ tự các Status trong một project */
+    @PutMapping("/statuses/reorder")
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<List<StatusResponse>> reorderStatuses(
+            @Valid @RequestBody StatusReorderRequest request) {
+        for (StatusReorderRequest.StatusPositionItem item : request.getPositions()) {
+            Status status = statusRepository.findById(item.getStatusId())
+                    .orElseThrow(() -> new RuntimeException("Status không tồn tại: " + item.getStatusId()));
+            status.setBoardPosition(item.getBoardPosition());
+            statusRepository.save(status);
+        }
+        // Trả về danh sách đã sắp xếp lại (lấy project từ status đầu tiên)
+        Long projectId = statusRepository.findById(request.getPositions().get(0).getStatusId())
+                .map(s -> s.getProject().getId()).orElse(null);
+        if (projectId == null) return ResponseEntity.ok(List.of());
+        return ResponseEntity.ok(statusRepository.findByProjectIdOrderByBoardPositionAsc(projectId)
+                .stream().map(this::toStatusResponse).collect(Collectors.toList()));
+    }
+
     private SprintResponse toSprintResponse(Sprint s) {
         return SprintResponse.builder()
                 .id(s.getId()).name(s.getName())
@@ -84,3 +104,4 @@ public class SprintStatusController {
                 .build();
     }
 }
+
