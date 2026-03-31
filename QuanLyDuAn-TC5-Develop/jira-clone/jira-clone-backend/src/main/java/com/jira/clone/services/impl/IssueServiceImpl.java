@@ -19,6 +19,7 @@ public class IssueServiceImpl implements IssueService {
     private final ProjectRepository projectRepository;
     private final StatusRepository statusRepository;
     private final UserRepository userRepository;
+    private final SprintRepository sprintRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     // Counter đơn giản cho issue key (production nên dùng sequence DB)
@@ -26,11 +27,13 @@ public class IssueServiceImpl implements IssueService {
                             ProjectRepository projectRepository,
                             StatusRepository statusRepository,
                             UserRepository userRepository,
+                            SprintRepository sprintRepository,
                             ApplicationEventPublisher eventPublisher) {
         this.issueRepository = issueRepository;
         this.projectRepository = projectRepository;
         this.statusRepository = statusRepository;
         this.userRepository = userRepository;
+        this.sprintRepository = sprintRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -154,6 +157,23 @@ public class IssueServiceImpl implements IssueService {
             issue.setDueDate(request.getDueDate());
         }
 
+        issue = issueRepository.save(issue);
+        return toResponse(issue);
+    }
+
+    @Override
+    @Transactional
+    public IssueResponse updateIssueSprint(Long issueId, Long sprintId) {
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(() -> new RuntimeException("Issue không tồn tại."));
+        
+        Sprint sprint = null;
+        if (sprintId != null) {
+            sprint = sprintRepository.findById(sprintId)
+                    .orElseThrow(() -> new RuntimeException("Sprint không tồn tại."));
+        }
+        
+        issue.setSprint(sprint);
         issue = issueRepository.save(issue);
         return toResponse(issue);
     }

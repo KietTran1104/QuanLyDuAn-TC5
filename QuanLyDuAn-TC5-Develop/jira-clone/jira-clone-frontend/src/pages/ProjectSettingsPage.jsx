@@ -4,6 +4,17 @@ import Layout from '../components/Layout'
 import { api } from '../services/api'
 import { useToast } from '../components/Toast'
 
+const ROLE_COLORS = {
+  'Admin': { bg: '#FFE9E9', color: '#AE2A19' },
+  'Scrum Master': { bg: '#E9F2FF', color: '#0C66E4' },
+  'Developer': { bg: '#EFFFD6', color: '#1F845A' },
+  'Member': { bg: '#F1F2F4', color: '#44546F' },
+  'Viewer': { bg: '#F1F2F4', color: '#626F86' },
+}
+const getRoleBadge = (roleName) => ROLE_COLORS[roleName] || { bg: '#F1F2F4', color: '#626F86' }
+
+const canAdmin = (role) => ['Admin', 'Scrum Master'].includes(role)
+
 export default function ProjectSettingsPage({ onLogout }) {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -18,8 +29,11 @@ export default function ProjectSettingsPage({ onLogout }) {
 
   // Members tab state
   const [members, setMembers] = useState([])
+  const [roles, setRoles] = useState([])
+  const [myRole, setMyRole] = useState('Viewer')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
+  const [selectedRoleId, setSelectedRoleId] = useState('')  // role khi invite
   const [loadingMembers, setLoadingMembers] = useState(false)
 
   // Labels tab state
@@ -50,10 +64,18 @@ export default function ProjectSettingsPage({ onLogout }) {
   const fetchProjectData = async () => {
     setLoading(true)
     try {
-      const res = await api.getProject(id)
-      setProject(res.data)
-      setProjectName(res.data.name || '')
-      setProjectKey(res.data.keyPrefix || '')
+      const [projRes, roleRes, myRoleRes] = await Promise.all([
+        api.getProject(id),
+        api.getRoles(),
+        api.getMyRoleInProject(id),
+      ])
+      const p = projRes.data
+      setProject(p)
+      setProjectName(p?.name || '')
+      setProjectKey(p?.keyPrefix || '')
+      setRoles(roleRes.data || [])
+      setMyRole(myRoleRes.data?.role || 'Viewer')
+      if (roleRes.data?.length > 0) setSelectedRoleId(roleRes.data[0].id)
     } catch (e) {
       addToast('Không thể tải thông tin dự án', 'error')
     } finally {
@@ -111,7 +133,6 @@ export default function ProjectSettingsPage({ onLogout }) {
     if (q.length < 2) { setSearchResults([]); return }
     try {
       const res = await api.searchUsers(q)
-      // Filter out users already in the project
       const memberIds = members.map(m => m.userId)
       setSearchResults((res.data || []).filter(u => !memberIds.includes(u.id)))
     } catch (e) { /* silent */ }
@@ -119,14 +140,23 @@ export default function ProjectSettingsPage({ onLogout }) {
 
   const handleAddMember = async (userId) => {
     try {
-      // Default roleId = 1 (or we could let user pick)
-      await api.addProjectMember(id, { userId, roleId: 1 })
+      await api.addProjectMember(id, { userId, roleId: selectedRoleId || (roles[0]?.id ?? 1) })
       addToast('Đã thêm thành viên', 'success')
       setSearchQuery('')
       setSearchResults([])
       fetchMembers()
     } catch (e) {
       addToast('Thêm thành viên thất bại', 'error')
+    }
+  }
+
+  const handleChangeRole = async (userId, newRoleId) => {
+    try {
+      const res = await api.updateMemberRole(id, userId, newRoleId)
+      setMembers(prev => prev.map(m => m.userId === userId ? { ...m, roleId: res.data.roleId, roleName: res.data.roleName } : m))
+      addToast('Cập nhật vai trò thành công!', 'success')
+    } catch (e) {
+      addToast('Cập nhật vai trò thất bại', 'error')
     }
   }
 
@@ -226,7 +256,8 @@ export default function ProjectSettingsPage({ onLogout }) {
                 {savingGeneral ? 'Đang lưu...' : 'Lưu thay đổi'}
               </button>
 
-              {/* DANGER ZONE */}
+              {/* DANGER ZONE — chỉ Admin */}
+              {canAdmin(myRole) && (
               <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid #DCDFE4' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#AE2A19', marginBottom: '8px' }}>Danger Zone</h3>
                 <div style={{ backgroundColor: '#FFECEB', border: '1px solid #AE2A19', borderRadius: '8px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -239,61 +270,105 @@ export default function ProjectSettingsPage({ onLogout }) {
                   </button>
                 </div>
               </div>
+              )}
             </div>
           )}
 
           {/* ═══════ MEMBERS TAB ═══════ */}
           {activeTab === 'members' && (
             <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#172B4D', margin: '0 0 24px 0' }}>Thành viên dự án</h2>
-              
-              {/* Search & Add */}
-              <div style={{ position: 'relative', marginBottom: '24px' }}>
-                <input 
-                  type="text" 
-                  value={searchQuery}
-                  onChange={e => handleSearchUsers(e.target.value)}
-                  placeholder="Tìm và thêm thành viên theo tên..."
-                  style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = '#0C66E4'}
-                  onBlur={e => { e.target.style.borderColor = '#DCDFE4'; setTimeout(() => setSearchResults([]), 200) }}
-                />
-                {searchResults.length > 0 && (
-                  <div style={{ position: 'absolute', top: '40px', left: 0, right: 0, backgroundColor: '#FFFFFF', border: '1px solid #DFE1E6', borderRadius: '4px', boxShadow: '0 4px 8px rgba(9,30,66,0.25)', zIndex: 10, maxHeight: '200px', overflowY: 'auto' }}>
-                    {searchResults.map(u => (
-                      <div key={u.id} onMouseDown={() => handleAddMember(u.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', cursor: 'pointer', fontSize: '14px' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#F4F5F7'} onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', overflow: 'hidden' }}>
-                          {u.avatarUrl ? <img src={u.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.fullName?.charAt(0)}
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#172B4D', margin: '0 0 8px 0' }}>Đội nhóm dự án</h2>
+              <p style={{ fontSize: '13px', color: '#626F86', marginBottom: '24px' }}>
+                Vai trò của bạn: <strong style={{ color: '#172B4D' }}>{myRole}</strong>
+                {!canAdmin(myRole) && <span style={{ color: '#E34935', marginLeft: '8px' }}>— Chỉ Admin/Scrum Master mới có thể thêm/xóa thành viên.</span>}
+              </p>
+
+              {/* Search & Add — chỉ hiện cho Admin */}
+              {canAdmin(myRole) && (
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={labelStyle}>Mời thành viên mới</label>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div style={{ flex: 1, position: 'relative' }}>
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={e => handleSearchUsers(e.target.value)}
+                        placeholder="Tìm theo tên hoặc email..."
+                        style={inputStyle}
+                        onFocus={e => e.target.style.borderColor = '#0C66E4'}
+                        onBlur={e => { e.target.style.borderColor = '#DCDFE4'; setTimeout(() => setSearchResults([]), 200) }}
+                      />
+                      {searchResults.length > 0 && (
+                        <div style={{ position: 'absolute', top: '40px', left: 0, right: 0, backgroundColor: '#FFFFFF', border: '1px solid #DFE1E6', borderRadius: '4px', boxShadow: '0 4px 8px rgba(9,30,66,0.25)', zIndex: 10, maxHeight: '200px', overflowY: 'auto' }}>
+                          {searchResults.map(u => (
+                            <div key={u.id} onMouseDown={() => handleAddMember(u.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', cursor: 'pointer', fontSize: '14px' }} onMouseOver={e => e.currentTarget.style.backgroundColor = '#F4F5F7'} onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                              <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', overflow: 'hidden' }}>
+                                {u.avatarUrl ? <img src={u.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.fullName?.charAt(0)}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: '600', color: '#172B4D' }}>{u.fullName}</div>
+                                <div style={{ fontSize: '12px', color: '#8590A2' }}>{u.email}</div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div>
-                          <div style={{ fontWeight: '600', color: '#172B4D' }}>{u.fullName}</div>
-                          <div style={{ fontSize: '12px', color: '#8590A2' }}>{u.email}</div>
-                        </div>
-                      </div>
-                    ))}
+                      )}
+                    </div>
+                    {/* Dropdown chọn Role */}
+                    <select
+                      value={selectedRoleId}
+                      onChange={e => setSelectedRoleId(Number(e.target.value))}
+                      style={{ height: '36px', padding: '0 12px', border: '2px solid #DCDFE4', borderRadius: '4px', fontSize: '14px', color: '#172B4D', backgroundColor: '#FFFFFF', cursor: 'pointer', minWidth: '150px' }}
+                    >
+                      {roles.map(r => (
+                        <option key={r.id} value={r.id}>{r.name}</option>
+                      ))}
+                    </select>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Members List */}
               {loadingMembers ? (
                 <div style={{ textAlign: 'center', color: '#626F86', padding: '24px' }}>Đang tải...</div>
               ) : (
                 <div style={{ border: '1px solid #DFE1E6', borderRadius: '8px', overflow: 'hidden' }}>
-                  {members.map((m, i) => (
-                    <div key={m.userId} style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: i < members.length - 1 ? '1px solid #EBECF0' : 'none' }}>
-                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', marginRight: '12px', overflow: 'hidden' }}>
-                        {m.avatarUrl ? <img src={m.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (m.fullName?.charAt(0).toUpperCase() || '?')}
+                  {members.map((m, i) => {
+                    const badge = getRoleBadge(m.roleName)
+                    return (
+                      <div key={m.userId} style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: i < members.length - 1 ? '1px solid #EBECF0' : 'none', gap: '12px' }}>
+                        {/* Avatar */}
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#0C66E4', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 'bold', flexShrink: 0, overflow: 'hidden' }}>
+                          {m.avatarUrl ? <img src={m.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (m.fullName?.charAt(0).toUpperCase() || '?')}
+                        </div>
+                        {/* Info */}
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#172B4D' }}>{m.fullName}</div>
+                          <div style={{ fontSize: '12px', color: '#8590A2' }}>{m.email || ''}</div>
+                        </div>
+                        {/* Role badge / dropdown */}
+                        {canAdmin(myRole) ? (
+                          <select
+                            value={m.roleId || ''}
+                            onChange={e => handleChangeRole(m.userId, Number(e.target.value))}
+                            style={{ height: '30px', padding: '0 8px', border: `1px solid ${badge.color}40`, borderRadius: '4px', fontSize: '12px', fontWeight: '600', color: badge.color, backgroundColor: badge.bg, cursor: 'pointer' }}
+                          >
+                            {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                          </select>
+                        ) : (
+                          <span style={{ fontSize: '12px', fontWeight: '600', padding: '3px 10px', borderRadius: '4px', backgroundColor: badge.bg, color: badge.color }}>
+                            {m.roleName || 'Member'}
+                          </span>
+                        )}
+                        {/* Remove button — chỉ Admin */}
+                        {canAdmin(myRole) && (
+                          <button onClick={() => handleRemoveMember(m.userId)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#AE2A19', fontSize: '12px', fontWeight: '600' }}>
+                            Xóa
+                          </button>
+                        )}
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#172B4D' }}>{m.fullName}</div>
-                        <div style={{ fontSize: '12px', color: '#8590A2' }}>{m.roleName || 'Member'}</div>
-                      </div>
-                      <button onClick={() => handleRemoveMember(m.userId)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', color: '#AE2A19', fontSize: '12px', fontWeight: '600' }}>
-                        Xóa
-                      </button>
-                    </div>
-                  ))}
+                    )
+                  })}
                   {members.length === 0 && (
                     <div style={{ padding: '24px', textAlign: 'center', color: '#8590A2', fontSize: '14px' }}>Chưa có thành viên nào.</div>
                   )}

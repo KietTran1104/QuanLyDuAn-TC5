@@ -130,6 +130,32 @@ public class ProjectServiceImpl implements ProjectService {
         projectMemberRepository.deleteById(memberId);
     }
 
+    @Override
+    public String getMyRoleInProject(Long projectId, Long userId) {
+        ProjectMemberId memberId = new ProjectMemberId(projectId, userId);
+        return projectMemberRepository.findById(memberId)
+                .map(pm -> pm.getRole().getName())
+                .orElse("Viewer");
+    }
+
+    @Override
+    @Transactional
+    public ProjectMemberResponse updateMemberRole(Long projectId, Long userId, Long roleId) {
+        ProjectMemberId memberId = new ProjectMemberId(projectId, userId);
+        ProjectMember member = projectMemberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Thành viên không tồn tại trong dự án."));
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role không tồn tại."));
+        member.setRole(role);
+        projectMemberRepository.save(member);
+        return ProjectMemberResponse.builder()
+                .userId(member.getUser().getId())
+                .fullName(member.getUser().getFullName())
+                .avatarUrl(member.getUser().getAvatarUrl())
+                .roleId(role.getId()).roleName(role.getName())
+                .build();
+    }
+
     private ProjectResponse toResponse(Project p) {
         return ProjectResponse.builder()
                 .id(p.getId()).name(p.getName()).keyPrefix(p.getKeyPrefix())
