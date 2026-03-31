@@ -20,8 +20,14 @@ public class IssueCreateRequest {
     private String summary;
 
     private String description;
-    
+
     private Long assigneeId;
     private Long sprintId;
     private Long parentIssueId;
+
+    private Integer estimatePoints;
+    private java.time.LocalDateTime dueDate;
+
+    // Tùy chọn: nếu không truyền, backend lấy cột đầu tiên làm mặc định
+    private Long statusId;
 }

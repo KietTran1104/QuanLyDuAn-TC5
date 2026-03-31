@@ -96,6 +96,7 @@ export const api = {
 
   // --- BOARD / ISSUE ENDPOINTS ---
   getStatusesByProject: (projectId) => apiClient.get(`/statuses/project/${projectId}`),
+  reorderStatuses: (positions) => apiClient.put('/statuses/reorder', { positions }),
   getIssuesByProject: (projectId) => apiClient.get(`/issues/project/${projectId}`),
   getIssuesByBoardColumn: (projectId, statusId) => apiClient.get(`/issues/board/${projectId}/${statusId}`),
   getIssue: (issueId) => apiClient.get(`/issues/${issueId}`),
@@ -104,6 +105,7 @@ export const api = {
   updateIssueSprint: (issueId, data) => apiClient.put(`/issues/${issueId}/sprint`, data),
   moveIssue: (issueId, data) => apiClient.put(`/issues/${issueId}/move`, data),
   deleteIssue: (issueId) => apiClient.delete(`/issues/${issueId}`),
+  getSubtasks: (issueId) => apiClient.get(`/issues/${issueId}/subtasks`),
 
   // --- COMMENT ENDPOINTS ---
   getComments: (issueId) => apiClient.get(`/comments/issue/${issueId}`),

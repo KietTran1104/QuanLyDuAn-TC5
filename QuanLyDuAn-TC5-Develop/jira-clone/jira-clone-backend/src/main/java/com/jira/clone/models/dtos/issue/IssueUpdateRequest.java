@@ -14,4 +14,6 @@ public class IssueUpdateRequest {
     private Long assigneeId;
     private Long statusId;
     private LocalDateTime dueDate;
+    private Integer estimatePoints;
+    private Long parentIssueId; // null = xóa liên kết cha, có giá trị = gán issue cha
 }

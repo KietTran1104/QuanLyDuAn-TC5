@@ -59,11 +59,17 @@ public class IssueController {
         return ResponseEntity.ok(issueService.updateIssue(issueId, request));
     }
 
+<<<<<<< HEAD
     @PutMapping("/{issueId}/sprint")
     public ResponseEntity<IssueResponse> updateIssueSprint(
             @PathVariable Long issueId,
             @RequestBody IssueSprintUpdateRequest request) {
         return ResponseEntity.ok(issueService.updateIssueSprint(issueId, request.getSprintId()));
+=======
+    @GetMapping("/{issueId}/subtasks")
+    public ResponseEntity<List<IssueResponse>> getSubtasks(@PathVariable Long issueId) {
+        return ResponseEntity.ok(issueService.getSubtasks(issueId));
+>>>>>>> remotes/origin/Phong
     }
 
     @DeleteMapping("/{issueId}")

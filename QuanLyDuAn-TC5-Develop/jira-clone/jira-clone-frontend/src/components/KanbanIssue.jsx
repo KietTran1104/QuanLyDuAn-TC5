@@ -45,24 +45,39 @@ export default function KanbanIssue({ issue, onIssueClick }) {
   };
 
   const clickRef = useRef(false);
+  // Lưu pointer down time để phân biệt click vs drag
+  const pointerDownTimeRef = useRef(0);
 
-  const handlePointerDown = () => {
+  // Merge custom handler với dnd-kit listener để KHÔNG phá vỡ drag activation
+  const handlePointerDown = (e) => {
     clickRef.current = true;
+    pointerDownTimeRef.current = Date.now();
+    // Gọi dnd-kit listener để kích hoạt drag (QUAN TRỌNG!)
+    if (listeners?.onPointerDown) {
+      listeners.onPointerDown(e);
+    }
   };
 
   const handlePointerMove = () => {
-    clickRef.current = false;
+    // Nếu di chuyển con trỏ, đây là drag chứ không phải click
+    if (Date.now() - pointerDownTimeRef.current > 50) {
+      clickRef.current = false;
+    }
   };
 
   const handlePointerUp = () => {
     if (clickRef.current && onIssueClick) {
       onIssueClick(issue.id);
     }
+    clickRef.current = false;
   };
+
+  // Tách listeners: bỏ onPointerDown ra khỏi spread vì đã merge vào handlePointerDown
+  const { onPointerDown: _dndPointerDown, ...restListeners } = listeners || {};
 
   return (
     <div 
-      ref={setNodeRef} style={style} {...attributes} {...listeners}
+      ref={setNodeRef} style={style} {...attributes} {...restListeners}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

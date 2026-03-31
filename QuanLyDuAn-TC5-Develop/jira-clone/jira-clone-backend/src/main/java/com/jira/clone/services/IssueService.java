@@ -12,4 +12,5 @@ public interface IssueService {
     IssueResponse updateIssue(Long issueId, IssueUpdateRequest request);
     IssueResponse updateIssueSprint(Long issueId, Long sprintId);
     void deleteIssue(Long issueId);
+    List<IssueResponse> getSubtasks(Long parentIssueId);
 }
