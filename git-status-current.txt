@@ -1,0 +1,212 @@
+﻿On branch Develop
+Your branch is up to date with 'origin/Develop'.
+
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Changes to be committed:
+	new file:   jira-clone/README.md
+	new file:   jira-clone/jira-clone-backend/.mvn/jvm.config
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/config/DataSeeder.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/config/RoleSeeder.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/AuditController.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/InvitationController.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/IssueLinkController.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/NotificationController.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/RoleController.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/SprintStatusController.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/RoleRequest.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/collaboration/InvitationRequest.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/IssueLinkResponse.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/IssueMoveRequest.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/IssueSprintUpdateRequest.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/SprintCompleteRequest.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/SprintUpdateRequest.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/StatusReorderRequest.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/ProjectInvitation.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/RolePermission.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/Action.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/InvitationStatus.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/Resource.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/ProjectInvitationRepository.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/RolePermissionRepository.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/security/annotations/CheckProjectPermission.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/security/aspects/PermissionAspect.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/InvitationService.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/IssueLinkService.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/NotificationService.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/impl/IssueLinkServiceImpl.java
+	new file:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/impl/IssueServiceImpl.java
+	new file:   "jira-clone/jira-clone-backend/uploads/attachments/a460b32d-4ea9-4e5f-b5f5-48208b5d598d_B\303\241o c\303\241o cu\341\273\221i k\303\254 - Ng\303\264n ng\341\273\257 ph\303\241t tri\341\273\203n \341\273\251ng d\341\273\245ng m\341\273\233i.docx"
+	new file:   "jira-clone/jira-clone-backend/uploads/attachments/ad8f22ed-12a6-47d7-9446-14ff75f70aac_B\303\241o c\303\241o cu\341\273\221i k\303\254 - Ng\303\264n ng\341\273\257 ph\303\241t tri\341\273\203n \341\273\251ng d\341\273\245ng m\341\273\233i.docx"
+	new file:   jira-clone/jira-clone-backend/uploads/attachments/b620e89b-14f6-44ff-95ee-bd1caab98154_[ENG]FrontEnd_dev.pdf
+	new file:   jira-clone/jira-clone-backend/uploads/attachments/c2fb59a0-50f2-4a64-b7e7-c154a23a1e5e_KeHoachChiaViecCho6nguoi (1).md
+	new file:   jira-clone/jira-clone-backend/uploads/attachments/da88e6b6-56dc-43f9-933f-c683897435d9_pngtree-red-hand-drawn-cartoon-strawberry-png-image_4541006.jpg
+
+Unmerged paths:
+  (use "git add/rm <file>..." as appropriate to mark resolution)
+	both deleted:    QuanLyDuAn-TC5-Develop/jira-clone/jira-clone-backend/.env.example
+	both deleted:    QuanLyDuAn-TC5-Develop/jira-clone/jira-clone-backend/src/main/resources/application.properties
+	both deleted:    QuanLyDuAn-TC5-Develop/jira-clone/jira-clone-frontend/package-lock.json
+	deleted by us:   jira-clone/.gitignore
+	added by us:     jira-clone/jira-clone-backend/.env
+	added by them:   jira-clone/jira-clone-backend/.env.example
+	deleted by us:   jira-clone/jira-clone-backend/.gitattributes
+	deleted by us:   jira-clone/jira-clone-backend/.gitignore
+	deleted by us:   jira-clone/jira-clone-backend/.mvn/wrapper/maven-wrapper.properties
+	deleted by us:   jira-clone/jira-clone-backend/mvnw
+	deleted by us:   jira-clone/jira-clone-backend/mvnw.cmd
+	deleted by us:   jira-clone/jira-clone-backend/pom.xml
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/JiraCloneApplication.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/config/SecurityConfig.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/AuthController.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/CollaborationController.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/HealthController.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/IssueController.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/ProjectController.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/controllers/UserController.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/exceptions/GlobalExceptionHandler.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/exceptions/ResourceNotFoundException.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/ai/AiGenerateRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/ai/AiGenerateResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/ai/AiUsageLogResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/ai/ProjectAiConfigRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/ai/ProjectAiConfigResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/audit/IssueActivityLogResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/audit/UserStarRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/audit/UserStarResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/audit/UserViewHistoryResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/auth/AuthResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/auth/GoogleLoginRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/auth/LoginRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/auth/OtpRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/auth/RefreshTokenRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/auth/RegisterRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/auth/ResetPasswordRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/auth/UserProfileDTO.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/auth/VerifyOtpRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/collaboration/AttachmentResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/collaboration/CommentCreateRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/collaboration/CommentResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/collaboration/LabelCreateRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/collaboration/LabelResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/collaboration/NotificationResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/IssueCreateRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/IssueLinkCreateRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/IssueResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/IssueUpdateRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/SprintCreateRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/SprintResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/StatusCreateRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/issue/StatusResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/project/ProjectCreateRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/project/ProjectMemberRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/project/ProjectMemberResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/project/ProjectResponse.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/user/ChangePasswordRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/user/UpdateProfileRequest.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/dtos/user/UserDto.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/AiUsageLog.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/Attachment.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/Comment.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/Issue.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/IssueActivityLog.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/IssueLink.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/Label.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/Notification.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/OtpTransaction.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/Project.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/ProjectAiConfig.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/ProjectMember.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/ProjectMemberId.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/RefreshToken.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/Role.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/Sprint.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/Status.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/User.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/UserAuthMethod.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/UserStar.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/entities/UserViewHistory.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/AiFeature.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/AiToneOfVoice.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/AuthType.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/GlobalRole.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/IssueLinkType.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/IssuePriority.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/IssueType.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/NotificationType.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/OtpPurpose.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/ProjectStatus.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/SprintStatus.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/StatusCategory.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/models/enums/TemplateType.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/AiUsageLogRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/AttachmentRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/CommentRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/IssueActivityLogRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/IssueLinkRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/IssueRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/LabelRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/NotificationRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/OtpTransactionRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/ProjectAiConfigRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/ProjectMemberRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/ProjectRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/RefreshTokenRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/RoleRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/SprintRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/StatusRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/UserAuthMethodRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/UserRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/UserStarRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/repositories/UserViewHistoryRepository.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/security/JwtAuthenticationFilter.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/security/JwtUtils.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/AuthService.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/EmailService.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/IssueService.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/OtpService.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/ProjectService.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/UserService.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/impl/AuthServiceImpl.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/impl/BrevoEmailServiceImpl.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/impl/OtpServiceImpl.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/impl/ProjectServiceImpl.java
+	deleted by us:   jira-clone/jira-clone-backend/src/main/java/com/jira/clone/services/impl/UserServiceImpl.java
+	added by them:   jira-clone/jira-clone-backend/src/main/resources/application.properties
+	deleted by us:   jira-clone/jira-clone-backend/src/test/java/com/jira/clone/JiraCloneApplicationTests.java
+	added by us:     jira-clone/jira-clone-backend/target/classes/application.properties
+	deleted by us:   jira-clone/jira-clone-backend/uploads/attachments/b59a1986-c554-44ac-b1a9-9b8400c88cc5_cong_viec_chua_hoan_thanh.md
+	deleted by us:   jira-clone/jira-clone-frontend/.env.example
+	deleted by us:   jira-clone/jira-clone-frontend/.gitignore
+	deleted by us:   jira-clone/jira-clone-frontend/index.html
+	added by us:     jira-clone/jira-clone-frontend/node_modules/.package-lock.json
+	added by them:   jira-clone/jira-clone-frontend/package-lock.json
+	deleted by us:   jira-clone/jira-clone-frontend/package.json
+	deleted by them: jira-clone/jira-clone-frontend/src/App.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/components/CreateProjectModal.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/components/GoogleLogin.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/components/LoadingScreen.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/index.css
+	deleted by them: jira-clone/jira-clone-frontend/src/main.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/BacklogPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/ForgotPasswordPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/LoginPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/NotFoundPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/PeoplePage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/ProfilePage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/ProjectReportsPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/ProjectSettingsPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/RegisterPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/ResetPasswordPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/ServerErrorPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/UnauthorizedPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/pages/VerifyOtpPage.jsx
+	deleted by them: jira-clone/jira-clone-frontend/src/services/api.js
+	deleted by us:   jira-clone/jira-clone-frontend/vite.config.js
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	git-status-current.txt
+
